@@ -4,7 +4,7 @@ export interface Item {
   id: string;
   kind: ItemKind;
   name: string;
-  rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary";
+  rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
   level: number;
   notes: string;
   acquiredAt: string;
@@ -26,8 +26,8 @@ const KEY = "soulframe-save-v1";
 
 export const defaultData: SaveData = {
   profile: {
-    envoyName: "Wanderer",
-    motto: "From slumber, I awaken.",
+    envoyName: "Andarilho",
+    motto: "Do sono, eu despertar.",
     level: 1,
     realm: "Midrath",
   },
