@@ -147,6 +147,8 @@ export function Dashboard() {
     return c;
   }, [data.items]);
 
+  const showCategoryFilters = activeKind !== "pact";
+
   const searchLower = searchQuery.trim().toLowerCase();
   const filteredItems = useMemo(() => {
     if (!searchLower) return null;
@@ -337,30 +339,36 @@ export function Dashboard() {
                 </Button>
               </div>
 
-              <div className="mb-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory("Todas")}
-                  className={`rounded-full border px-3 py-1 text-sm ${activeCategory === "Todas" ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
-                >
-                  Todas
-                </button>
-                {ITEM_CATEGORIES.map((category) => (
+              {showCategoryFilters && (
+                <div className="mb-4 flex flex-wrap gap-2">
                   <button
-                    key={category}
                     type="button"
-                    onClick={() => setActiveCategory(category)}
-                    className={`rounded-full border px-3 py-1 text-sm ${activeCategory === category ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                    onClick={() => setActiveCategory("Todas")}
+                    className={`rounded-full border px-3 py-1 text-sm ${activeCategory === "Todas" ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
                   >
-                    {category}
+                    Todas
                   </button>
-                ))}
-              </div>
+                  {ITEM_CATEGORIES.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setActiveCategory(category)}
+                      className={`rounded-full border px-3 py-1 text-sm ${activeCategory === category ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
                 <TabsContent key={k} value={k} className="mt-0">
                   <ItemList
-                    items={data.items.filter((i) => i.kind === k && (activeCategory === "Todas" || i.category === activeCategory))}
+                    items={data.items.filter((i) => {
+                      if (i.kind !== k) return false;
+                      if (k === "pact") return true;
+                      return activeCategory === "Todas" || i.category === activeCategory;
+                    })}
                     kind={k}
                     onUpdate={updateItem}
                     onDelete={deleteItem}
