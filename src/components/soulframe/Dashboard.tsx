@@ -315,11 +315,16 @@ function ItemList({
   const Icon = meta.icon;
 
   if (items.length === 0) {
+    const emptyMsg: Record<ItemKind, string> = {
+      rune: "Nenhuma runa inscrita no seu códice ainda.",
+      pact: "Nenhum pacto inscrito no seu códice ainda.",
+      weapon: "Nenhuma arma inscrita no seu códice ainda.",
+    };
     return (
       <Card className="rune-card border-dashed">
         <CardContent className="py-16 text-center">
           <Icon className={`h-10 w-10 mx-auto mb-3 opacity-60 ${meta.color}`} />
-          <p className="text-muted-foreground italic">No {meta.label.toLowerCase()} yet inscribed in your codex.</p>
+          <p className="text-muted-foreground italic text-base">{emptyMsg[kind]}</p>
         </CardContent>
       </Card>
     );
