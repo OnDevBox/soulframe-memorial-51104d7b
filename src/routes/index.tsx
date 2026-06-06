@@ -1,29 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Dashboard } from "@/components/soulframe/Dashboard";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Soulframe Codex — Envoy's Chronicle" },
+      {
+        name: "description",
+        content:
+          "A fan-made companion for Soulframe. Track your runes, pacts and weapons, then save your chronicle to a portable CSV memorystick.",
+      },
+      { property: "og:title", content: "Soulframe Codex — Envoy's Chronicle" },
+      {
+        property: "og:description",
+        content: "Track your runes, pacts and weapons. Save and load your tale as a CSV.",
+      },
+    ],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <>
+      <Dashboard />
+      <Toaster theme="dark" position="bottom-right" />
+    </>
   );
 }
