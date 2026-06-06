@@ -5,13 +5,13 @@ import { Toaster } from "@/components/ui/sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Soulframe Codex — Envoy's Chronicle" },
+      { title: "Soulframe Memorial" },
       {
         name: "description",
         content:
           "A fan-made companion for Soulframe. Track your runes, pacts and weapons, then save your chronicle to a portable CSV memorystick.",
       },
-      { property: "og:title", content: "Soulframe Codex — Envoy's Chronicle" },
+      { property: "og:title", content: "Soulframe Memorial" },
       {
         property: "og:description",
         content: "Track your runes, pacts and weapons. Save and load your tale as a CSV.",
