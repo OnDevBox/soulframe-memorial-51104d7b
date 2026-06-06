@@ -282,9 +282,9 @@ export function Dashboard() {
           </Tabs>
         </section>
 
-        <footer className="text-center text-xs text-muted-foreground py-8">
+        <footer className="text-center text-sm text-muted-foreground py-8">
           <div className="divider-ornate mx-auto w-40 mb-3" />
-          <p className="italic">"All things remembered, never lost."</p>
+          <p className="italic text-base">"Tudo que é lembrado, nunca se perde."</p>
         </footer>
       </main>
     </div>
