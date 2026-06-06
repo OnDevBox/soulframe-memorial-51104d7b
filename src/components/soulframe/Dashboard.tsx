@@ -181,34 +181,34 @@ export function Dashboard() {
         <section className="rune-card rounded-xl p-6 md:p-8">
           <div className="grid md:grid-cols-[1.2fr_2fr] gap-8 items-center">
             <div className="text-center md:text-left space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Envoy</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Enviado</p>
               <h2 className="text-4xl md:text-5xl font-display text-gold">
-                {data.profile.envoyName || "Nameless"}
+                {data.profile.envoyName || "Sem Nome"}
               </h2>
-              <p className="italic text-muted-foreground">"{data.profile.motto}"</p>
+              <p className="italic text-muted-foreground text-lg">"{data.profile.motto}"</p>
               <div className="flex gap-3 justify-center md:justify-start pt-2">
-                <Badge className="bg-primary/15 text-primary border border-primary/40">
-                  Level {data.profile.level}
+                <Badge className="bg-primary/15 text-primary border border-primary/40 text-sm">
+                  Nível {data.profile.level}
                 </Badge>
-                <Badge className="bg-accent/30 text-accent-foreground border border-accent/40">
+                <Badge className="bg-accent/30 text-accent-foreground border border-accent/40 text-sm">
                   {data.profile.realm}
                 </Badge>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Envoy Name">
+              <Field label="Nome do Enviado">
                 <Input
                   value={data.profile.envoyName}
                   onChange={(e) => updateProfile("envoyName", e.target.value)}
                 />
               </Field>
-              <Field label="Realm">
+              <Field label="Reino">
                 <Input
                   value={data.profile.realm}
                   onChange={(e) => updateProfile("realm", e.target.value)}
                 />
               </Field>
-              <Field label="Level">
+              <Field label="Nível">
                 <Input
                   type="number"
                   min={1}
@@ -216,7 +216,7 @@ export function Dashboard() {
                   onChange={(e) => updateProfile("level", Number(e.target.value) || 1)}
                 />
               </Field>
-              <Field label="Motto">
+              <Field label="Lema">
                 <Input
                   value={data.profile.motto}
                   onChange={(e) => updateProfile("motto", e.target.value)}
