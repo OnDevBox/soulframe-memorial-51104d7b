@@ -30,6 +30,8 @@ import {
   type Item,
   type ItemKind,
   type SaveData,
+  type WeaponCategory,
+  WEAPON_CATEGORIES,
   defaultData,
   exportCSV,
   importCSV,
@@ -60,6 +62,7 @@ export function Dashboard() {
   const [data, setData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedWeaponCategory, setSelectedWeaponCategory] = useState<WeaponCategory | "all">("all");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -121,6 +124,7 @@ export function Dashboard() {
       level: 1,
       notes: "",
       acquiredAt: new Date().toISOString().slice(0, 10),
+      weaponCategory: kind === "weapon" ? (selectedWeaponCategory !== "all" ? selectedWeaponCategory : undefined) : undefined,
     };
     persistMemory({ ...data, items: [newItem, ...data.items] });
   };
@@ -146,7 +150,7 @@ export function Dashboard() {
   const filteredItems = useMemo(() => {
     if (!searchLower) return null;
     return data.items.filter((it) => {
-      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind}`.toLowerCase();
+      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind} ${it.weaponCategory || ""}`.toLowerCase();
       return hay.includes(searchLower);
     });
   }, [data.items, searchLower]);
@@ -314,7 +318,7 @@ export function Dashboard() {
               )}
             </>
           ) : (
-            <Tabs value={activeKind} onValueChange={(v) => setActiveKind(v as ItemKind)}>
+            <Tabs value={activeKind} onValueChange={(v) => { setActiveKind(v as ItemKind); setSelectedWeaponCategory("all"); }}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <TabsList className="bg-card border border-border">
                   {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
@@ -332,10 +336,40 @@ export function Dashboard() {
                 </Button>
               </div>
 
+              {activeKind === "weapon" && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <Button
+                    variant={selectedWeaponCategory === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedWeaponCategory("all")}
+                    className={selectedWeaponCategory === "all" ? "bg-primary/20 text-primary border-primary" : ""}
+                  >
+                    Todas as Armas
+                  </Button>
+                  {WEAPON_CATEGORIES.map((cat) => (
+                    <Button
+                      key={cat}
+                      variant={selectedWeaponCategory === cat ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedWeaponCategory(cat)}
+                      className={selectedWeaponCategory === cat ? "bg-primary/20 text-primary border-primary" : ""}
+                    >
+                      {cat}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
               {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
                 <TabsContent key={k} value={k} className="mt-0">
                   <ItemList
-                    items={data.items.filter((i) => i.kind === k)}
+                    items={data.items.filter((i) => {
+                      if (i.kind !== k) return false;
+                      if (k === "weapon" && selectedWeaponCategory !== "all") {
+                        return i.weaponCategory === selectedWeaponCategory;
+                      }
+                      return true;
+                    })}
                     kind={k}
                     onUpdate={updateItem}
                     onDelete={deleteItem}
@@ -382,7 +416,7 @@ function ItemList({
     const emptyMsg: Record<ItemKind, string> = {
       rune: "Nenhuma runa inscrita no seu códice ainda.",
       pact: "Nenhum pacto inscrito no seu códice ainda.",
-      weapon: "Nenhuma arma inscrita no seu códice ainda.",
+      weapon: "Nenhuma arma encontrada com os filtros atuais.",
     };
     return (
       <Card className="rune-card border-dashed">
@@ -432,7 +466,7 @@ function ItemCard({
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Nome">
             <Input value={item.name} onChange={(e) => onUpdate(item.id, { name: e.target.value })} />
           </Field>
@@ -459,6 +493,23 @@ function ItemCard({
               </SelectContent>
             </Select>
           </Field>
+          {item.kind === "weapon" && (
+            <Field label="Categoria">
+              <Select
+                value={item.weaponCategory || ""}
+                onValueChange={(v) => onUpdate(item.id, { weaponCategory: v as WeaponCategory })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEAPON_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <Field label="Adquirido">
             <Input
               type="date"

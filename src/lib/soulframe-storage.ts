@@ -1,5 +1,19 @@
 export type ItemKind = "rune" | "pact" | "weapon";
 
+export const WEAPON_CATEGORIES = [
+  "Espadas longas",
+  "Espadões",
+  "Floretes",
+  "Armas de haste",
+  "Escudos",
+  "Arcos",
+  "Adagas",
+  "Lâminas arremessáveis",
+  "Armas mágicas"
+] as const;
+
+export type WeaponCategory = typeof WEAPON_CATEGORIES[number];
+
 export interface Item {
   id: string;
   kind: ItemKind;
@@ -8,6 +22,7 @@ export interface Item {
   level: number;
   notes: string;
   acquiredAt: string;
+  weaponCategory?: WeaponCategory;
 }
 
 export interface Profile {
@@ -51,9 +66,9 @@ export function saveToStorage(data: SaveData) {
 }
 
 // --- CSV ---
-const HEADERS = ["section", "id", "kind", "name", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
+const HEADERS = ["section", "id", "kind", "name", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm", "weaponCategory"];
 
-function csvEscape(v: string | number): string {
+function csvEscape(v: string | number | undefined): string {
   const s = String(v ?? "");
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
@@ -74,13 +89,14 @@ export function exportCSV(data: SaveData): string {
       data.profile.envoyName,
       data.profile.motto,
       data.profile.realm,
+      "",
     ]
       .map(csvEscape)
       .join(","),
   );
   for (const it of data.items) {
     rows.push(
-      ["item", it.id, it.kind, it.name, it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
+      ["item", it.id, it.kind, it.name, it.rarity, it.level, it.notes, it.acquiredAt, "", "", "", it.weaponCategory || ""]
         .map(csvEscape)
         .join(","),
     );
@@ -133,6 +149,7 @@ export function importCSV(text: string): SaveData {
         level: Number(row[idx("level")]) || 1,
         notes: row[idx("notes")] || "",
         acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
+        weaponCategory: (row[idx("weaponCategory")] as WeaponCategory) || undefined,
       });
     }
   }
