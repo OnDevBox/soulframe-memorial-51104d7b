@@ -294,7 +294,7 @@ export function Dashboard() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-widest text-muted-foreground">{label}</Label>
+      <Label className="text-sm uppercase tracking-widest text-muted-foreground">{label}</Label>
       {children}
     </div>
   );
