@@ -166,7 +166,7 @@ export function Dashboard() {
               <Feather className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl text-gold font-display">Códice Soulframe</h1>
+              <h1 className="text-xl md:text-2xl text-gold font-display">Soulframe Memorial</h1>
               <p className="text-sm text-muted-foreground italic">Crônica do Enviado</p>
             </div>
           </div>
