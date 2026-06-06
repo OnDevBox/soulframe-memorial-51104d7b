@@ -40,19 +40,19 @@ const KIND_META: Record<
   ItemKind,
   { label: string; icon: typeof Sparkles; color: string; accent: string }
 > = {
-  rune: { label: "Runes", icon: Sparkles, color: "text-[color:var(--rune)]", accent: "var(--rune)" },
-  pact: { label: "Pacts", icon: ScrollText, color: "text-[color:var(--pact)]", accent: "var(--pact)" },
-  weapon: { label: "Weapons", icon: Swords, color: "text-[color:var(--weapon)]", accent: "var(--weapon)" },
+  rune: { label: "Runas", icon: Sparkles, color: "text-[color:var(--rune)]", accent: "var(--rune)" },
+  pact: { label: "Pactos", icon: ScrollText, color: "text-[color:var(--pact)]", accent: "var(--pact)" },
+  weapon: { label: "Armas", icon: Swords, color: "text-[color:var(--weapon)]", accent: "var(--weapon)" },
 };
 
-const RARITIES: Item["rarity"][] = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
+const RARITIES: Item["rarity"][] = ["Comum", "Incomum", "Raro", "Épico", "Lendário"];
 
 const rarityClass: Record<Item["rarity"], string> = {
-  Common: "bg-muted text-muted-foreground border-border",
-  Uncommon: "bg-accent/30 text-accent-foreground border-accent/40",
-  Rare: "bg-[color:var(--rune)]/20 text-[color:var(--rune)] border-[color:var(--rune)]/40",
-  Epic: "bg-[color:var(--pact)]/20 text-[color:var(--pact)] border-[color:var(--pact)]/40",
-  Legendary: "bg-[color:var(--ember)]/20 text-[color:var(--ember)] border-[color:var(--ember)]/40",
+  Comum: "bg-muted text-muted-foreground border-border",
+  Incomum: "bg-accent/30 text-accent-foreground border-accent/40",
+  Raro: "bg-[color:var(--rune)]/20 text-[color:var(--rune)] border-[color:var(--rune)]/40",
+  Épico: "bg-[color:var(--pact)]/20 text-[color:var(--pact)] border-[color:var(--pact)]/40",
+  Lendário: "bg-[color:var(--ember)]/20 text-[color:var(--ember)] border-[color:var(--ember)]/40",
 };
 
 export function Dashboard() {
