@@ -265,7 +265,7 @@ export function Dashboard() {
                 })}
               </TabsList>
               <Button onClick={() => addItem(activeKind)} variant="default">
-                <Plus className="h-4 w-4 mr-1" /> Inscribe {KIND_META[activeKind].label.slice(0, -1)}
+                <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
               </Button>
             </div>
 
