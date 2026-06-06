@@ -142,6 +142,15 @@ export function Dashboard() {
     return c;
   }, [data.items]);
 
+  const searchLower = searchQuery.trim().toLowerCase();
+  const filteredItems = useMemo(() => {
+    if (!searchLower) return null;
+    return data.items.filter((it) => {
+      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind}`.toLowerCase();
+      return hay.includes(searchLower);
+    });
+  }, [data.items, searchLower]);
+
   return (
     <div className="min-h-screen w-full">
       <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={handleFile} />
