@@ -34,6 +34,7 @@ import {
   ITEM_CATEGORIES,
   defaultData,
   exportCSV,
+  getCategoryName,
   importCSV,
   loadFromStorage,
   saveToStorage,
@@ -132,7 +133,8 @@ export function Dashboard() {
       id: crypto.randomUUID(),
       kind,
       name: "",
-      category: ITEM_CATEGORIES[0],
+      categoryId: ITEM_CATEGORIES[0].id,
+      category: ITEM_CATEGORIES[0].name,
       rarity: "Comum",
       level: 1,
       notes: "",
@@ -367,12 +369,12 @@ export function Dashboard() {
                   </button>
                   {ITEM_CATEGORIES.map((category) => (
                     <button
-                      key={category}
+                      key={category.id}
                       type="button"
-                      onClick={() => setActiveCategory(category)}
-                      className={`rounded-full border px-3 py-1 text-sm ${activeCategory === category ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                      onClick={() => setActiveCategory(String(category.id))}
+                      className={`rounded-full border px-3 py-1 text-sm ${activeCategory === String(category.id) ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
                     >
-                      {category}
+                      {category.name}
                     </button>
                   ))}
                 </div>
@@ -384,7 +386,7 @@ export function Dashboard() {
                     items={data.items.filter((i) => {
                       if (i.kind !== k) return false;
                       if (k === "pact") return true;
-                      return activeCategory === "Todas" || i.category === activeCategory;
+                      return activeCategory === "Todas" || i.categoryId === Number(activeCategory);
                     })}
                     kind={k}
                     onUpdate={updateItem}
@@ -497,15 +499,21 @@ function ItemCard({
           </Field>
           <Field label="Categoria">
             <Select
-              value={item.category ?? ITEM_CATEGORIES[0]}
-              onValueChange={(v) => onUpdate(item.id, { category: v as (typeof ITEM_CATEGORIES)[number] })}
+              value={String(item.categoryId ?? ITEM_CATEGORIES[0].id)}
+              onValueChange={(v) => {
+                const nextCategoryId = Number(v);
+                onUpdate(item.id, {
+                  categoryId: nextCategoryId,
+                  category: ITEM_CATEGORIES.find((category) => category.id === nextCategoryId)?.name ?? getCategoryName(nextCategoryId),
+                });
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ITEM_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                  <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -544,7 +552,7 @@ function ItemCard({
         <div className="flex justify-between items-center pt-1">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={rarityClass[item.rarity]}>{item.rarity}</Badge>
-            <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">{item.category ?? ITEM_CATEGORIES[0]}</Badge>
+            <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">{item.category ?? getCategoryName(item.categoryId)}</Badge>
           </div>
           <span className="text-sm text-muted-foreground">Nv. {item.level}</span>
         </div>

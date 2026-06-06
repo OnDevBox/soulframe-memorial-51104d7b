@@ -1,21 +1,58 @@
 export type ItemKind = "rune" | "pact" | "weapon" | "totem";
 
+export interface CategoryDefinition {
+  id: number;
+  name: string;
+}
+
 export const ITEM_CATEGORIES = [
-  "Lâminas Longas",
-  "Pesadas",
-  "Armas de Haste",
-  "Escudos",
-  "Arcos",
-  "Adagas",
-  "Lâminas curtas",
-  "Mágicas",
+  { id: 1, name: "Lâminas Longas" },
+  { id: 2, name: "Pesadas" },
+  { id: 3, name: "Armas de Haste" },
+  { id: 4, name: "Escudos" },
+  { id: 5, name: "Arcos" },
+  { id: 6, name: "Adagas" },
+  { id: 7, name: "Lâminas curtas" },
+  { id: 8, name: "Mágicas" },
 ] as const;
+
+export type ItemCategoryId = (typeof ITEM_CATEGORIES)[number]["id"];
+
+export function getCategoryById(categoryId?: number) {
+  return ITEM_CATEGORIES.find((category) => category.id === categoryId);
+}
+
+export function getCategoryName(categoryId?: number) {
+  return getCategoryById(categoryId)?.name ?? ITEM_CATEGORIES[0].name;
+}
+
+function getCategoryIdByName(name?: string): ItemCategoryId {
+  return ITEM_CATEGORIES.find((category) => category.name === name)?.id ?? ITEM_CATEGORIES[0].id;
+}
+
+function normalizeItem(item: Partial<Item> & { category?: string; categoryId?: number }): Item {
+  const categoryId: ItemCategoryId =
+    typeof item.categoryId === "number" ? (item.categoryId as ItemCategoryId) : getCategoryIdByName(item.category);
+  return {
+    ...item,
+    id: item.id ?? crypto.randomUUID(),
+    kind: item.kind ?? "rune",
+    name: item.name ?? "Desconhecido",
+    categoryId,
+    category: item.category || getCategoryName(categoryId),
+    rarity: item.rarity ?? "Comum",
+    level: item.level ?? 1,
+    notes: item.notes ?? "",
+    acquiredAt: item.acquiredAt ?? new Date().toISOString().slice(0, 10),
+  } as Item;
+}
 
 export interface Item {
   id: string;
   kind: ItemKind;
   name: string;
-  category: (typeof ITEM_CATEGORIES)[number];
+  categoryId: ItemCategoryId;
+  category: string;
   rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
   level: number;
   notes: string;
@@ -55,10 +92,7 @@ export function loadFromStorage(): SaveData {
     return {
       ...defaultData,
       ...parsed,
-      items: (parsed.items ?? []).map((item) => ({
-        ...item,
-        category: item.category || ITEM_CATEGORIES[0],
-      })) as Item[],
+      items: (parsed.items ?? []).map((item) => normalizeItem(item as Partial<Item>)),
     };
   } catch {
     return defaultData;
@@ -71,7 +105,7 @@ export function saveToStorage(data: SaveData) {
 }
 
 // --- CSV ---
-const HEADERS = ["section", "id", "kind", "name", "category", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
+const HEADERS = ["section", "id", "kind", "name", "categoryId", "category", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
 
 function csvEscape(v: string | number): string {
   const s = String(v ?? "");
@@ -100,7 +134,7 @@ export function exportCSV(data: SaveData): string {
   );
   for (const it of data.items) {
     rows.push(
-      ["item", it.id, it.kind, it.name, it.category ?? ITEM_CATEGORIES[0], it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
+      ["item", it.id, it.kind, it.name, it.categoryId, it.category ?? getCategoryName(it.categoryId), it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
         .map(csvEscape)
         .join(","),
     );
@@ -145,16 +179,20 @@ export function importCSV(text: string): SaveData {
         realm: row[idx("realm")] || defaultData.profile.realm,
       };
     } else if (section === "item") {
-      data.items.push({
-        id: row[idx("id")] || crypto.randomUUID(),
-        kind: (row[idx("kind")] as ItemKind) || "rune",
-        name: row[idx("name")] || "Desconhecido",
-        category: (row[idx("category")] as (typeof ITEM_CATEGORIES)[number]) || ITEM_CATEGORIES[0],
-        rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum",
-        level: Number(row[idx("level")]) || 1,
-        notes: row[idx("notes")] || "",
-        acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
-      });
+      const categoryId = (Number(row[idx("categoryId")]) || getCategoryIdByName(row[idx("category")] || "")) as ItemCategoryId;
+      data.items.push(
+        normalizeItem({
+          id: row[idx("id")] || crypto.randomUUID(),
+          kind: (row[idx("kind")] as ItemKind) || "rune",
+          name: row[idx("name")] || "Desconhecido",
+          categoryId,
+          category: row[idx("category")] || getCategoryName(categoryId),
+          rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum",
+          level: Number(row[idx("level")]) || 1,
+          notes: row[idx("notes")] || "",
+          acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
+        }),
+      );
     }
   }
   return data;
