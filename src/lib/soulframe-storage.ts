@@ -128,8 +128,8 @@ export function importCSV(text: string): SaveData {
       data.items.push({
         id: row[idx("id")] || crypto.randomUUID(),
         kind: (row[idx("kind")] as ItemKind) || "rune",
-        name: row[idx("name")] || "Unknown",
-        rarity: (row[idx("rarity")] as Item["rarity"]) || "Common",
+        name: row[idx("name")] || "Desconhecido",
+        rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum",
         level: Number(row[idx("level")]) || 1,
         notes: row[idx("notes")] || "",
         acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
