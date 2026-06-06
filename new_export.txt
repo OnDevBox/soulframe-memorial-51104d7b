@@ -1,0 +1,24 @@
+﻿export function exportCSV(data: SaveData): string {
+  const rows: string[] = [HEADERS.join(",")];
+  const buildRow = (rowObj: Record<string, any>) => {
+    return HEADERS.map(h => csvEscape(rowObj[h] ?? "")).join(",");
+  };
+  rows.push(buildRow({
+    section: "profile",
+    level: data.profile.level,
+    envoyName: data.profile.envoyName,
+    motto: data.profile.motto,
+    realm: data.profile.realm,
+  }));
+  for (const it of data.items) {
+    rows.push(buildRow({
+      section: "item", id: it.id, kind: it.kind, name: it.name, categoryId: it.categoryId, category: it.category ?? getCategoryName(it.categoryId), rarity: it.rarity, level: it.level, notes: it.notes, acquiredAt: it.acquiredAt, partsCount: it.partsCount, partsTotal: it.partsTotal, completed: Number(it.completed),
+    }));
+  }
+  for (const set of data.armorSets) {
+    rows.push(buildRow({
+      section: "armorSet", id: set.id, name: set.name, helmetCount: set.helmetCount, helmetTotal: set.helmetTotal, helmetOwned: Number(set.helmetOwned), chestCount: set.chestCount, chestTotal: set.chestTotal, chestOwned: Number(set.chestOwned), legsCount: set.legsCount, legsTotal: set.legsTotal, legsOwned: Number(set.legsOwned),
+    }));
+  }
+  return rows.join("\n");
+}

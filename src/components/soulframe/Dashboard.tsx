@@ -39,7 +39,7 @@ import {
   getCategoryName,
   importCSV,
   importJSON,
-  loadFromStorage,
+  loadFromStorage, saveToStorage,
 } from "@/lib/soulframe-storage";
 
 const KIND_META: Record<
@@ -84,7 +84,7 @@ export function Dashboard() {
   );
 
   const persistMemory = (next: SaveData) => {
-    setData(next);
+    setData(next); saveToStorage(next);
   };
 
   const handleLoadStick = () => {

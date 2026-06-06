@@ -1,0 +1,16 @@
+﻿  for (let i = 1; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    const section = row[idx("section")];
+    if (section === "profile") {
+      data.profile = { envoyName: row[idx("envoyName")] || defaultData.profile.envoyName, motto: row[idx("motto")] || defaultData.profile.motto, level: Number(row[idx("level")]) || 1, realm: row[idx("realm")] || defaultData.profile.realm };
+    } else if (section === "item") {
+      const categoryId = (Number(row[idx("categoryId")]) || getCategoryIdByName(row[idx("category")] || "")) as ItemCategoryId;
+      const completedVal = row[idx("completed")];
+      data.items.push(normalizeItem({ id: row[idx("id")] || crypto.randomUUID(), kind: (row[idx("kind")] as ItemKind) || "rune", name: row[idx("name")] || "Desconhecido", categoryId, category: row[idx("category")] || getCategoryName(categoryId), rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum", level: Number(row[idx("level")]) || 1, notes: row[idx("notes")] || "", acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10), partsCount: Number(row[idx("partsCount")]) || 0, partsTotal: Number(row[idx("partsTotal")]) || 5, completed: Boolean(Number(completedVal) || completedVal === "true") }));
+    } else if (section === "armorSet") {
+      const helmetOwnedVal = row[idx("helmetOwned")];
+      const chestOwnedVal = row[idx("chestOwned")];
+      const legsOwnedVal = row[idx("legsOwned")];
+      data.armorSets.push({ id: row[idx("id")] || crypto.randomUUID(), name: row[idx("name")] || "Set de Armadura", helmetCount: Number(row[idx("helmetCount")]) || 0, helmetTotal: Number(row[idx("helmetTotal")]) || 5, helmetOwned: Boolean(Number(helmetOwnedVal) || helmetOwnedVal === "true"), chestCount: Number(row[idx("chestCount")]) || 0, chestTotal: Number(row[idx("chestTotal")]) || 5, chestOwned: Boolean(Number(chestOwnedVal) || chestOwnedVal === "true"), legsCount: Number(row[idx("legsCount")]) || 0, legsTotal: Number(row[idx("legsTotal")]) || 5, legsOwned: Boolean(Number(legsOwnedVal) || legsOwnedVal === "true") });
+    }
+  }
