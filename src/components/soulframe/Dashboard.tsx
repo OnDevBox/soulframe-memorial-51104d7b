@@ -337,7 +337,7 @@ function ItemList({
           <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2 text-lg font-display">
               <Icon className={`h-5 w-5 ${meta.color}`} />
-              <span className="truncate">{it.name || <em className="text-muted-foreground">Unnamed</em>}</span>
+              <span className="truncate">{it.name || <em className="text-muted-foreground">Sem Nome</em>}</span>
             </CardTitle>
             <Button
               variant="ghost"
@@ -350,10 +350,10 @@ function ItemList({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Name">
+              <Field label="Nome">
                 <Input value={it.name} onChange={(e) => onUpdate(it.id, { name: e.target.value })} />
               </Field>
-              <Field label="Level">
+              <Field label="Nível">
                 <Input
                   type="number"
                   min={1}
@@ -361,7 +361,7 @@ function ItemList({
                   onChange={(e) => onUpdate(it.id, { level: Number(e.target.value) || 1 })}
                 />
               </Field>
-              <Field label="Rarity">
+              <Field label="Raridade">
                 <Select
                   value={it.rarity}
                   onValueChange={(v) => onUpdate(it.id, { rarity: v as Item["rarity"] })}
@@ -376,7 +376,7 @@ function ItemList({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Acquired">
+              <Field label="Adquirido">
                 <Input
                   type="date"
                   value={it.acquiredAt}
@@ -384,17 +384,17 @@ function ItemList({
                 />
               </Field>
             </div>
-            <Field label="Notes">
+            <Field label="Notas">
               <Textarea
                 rows={2}
                 value={it.notes}
                 onChange={(e) => onUpdate(it.id, { notes: e.target.value })}
-                placeholder="Whispered lore, effects, origins…"
+                placeholder="Lore sussurrada, efeitos, origens…"
               />
             </Field>
             <div className="flex justify-between items-center pt-1">
               <Badge variant="outline" className={rarityClass[it.rarity]}>{it.rarity}</Badge>
-              <span className="text-xs text-muted-foreground">Lv. {it.level}</span>
+              <span className="text-sm text-muted-foreground">Nv. {it.level}</span>
             </div>
           </CardContent>
         </Card>
