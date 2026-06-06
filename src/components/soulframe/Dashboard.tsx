@@ -155,22 +155,22 @@ export function Dashboard() {
               <Feather className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl text-gold font-display">Soulframe Codex</h1>
-              <p className="text-xs text-muted-foreground italic">Chronicle of the Envoy</p>
+              <h1 className="text-xl md:text-2xl text-gold font-display">Códice Soulframe</h1>
+              <p className="text-sm text-muted-foreground italic">Crônica do Enviado</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleLoadStick}>
-              <Upload className="h-4 w-4 mr-1" /> Load Memory
+              <Upload className="h-4 w-4 mr-1" /> Carregar Memória
             </Button>
             <Button variant="outline" size="sm" onClick={handleSaveStick}>
-              <Save className="h-4 w-4 mr-1" /> Save Memory
+              <Save className="h-4 w-4 mr-1" /> Salvar Memória
             </Button>
             <Button variant="outline" size="sm" onClick={handleImportClick}>
-              <Upload className="h-4 w-4 mr-1" /> Import CSV
+              <Upload className="h-4 w-4 mr-1" /> Importar CSV
             </Button>
             <Button size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" /> Export CSV
+              <Download className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>
         </div>
