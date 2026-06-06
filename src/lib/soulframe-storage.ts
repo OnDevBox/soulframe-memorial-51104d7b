@@ -1,6 +1,6 @@
 export type ItemKind = "rune" | "pact" | "weapon" | "totem";
 
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.1.1";
 
 export interface CategoryDefinition {
   id: number;
@@ -46,6 +46,8 @@ function normalizeItem(item: Partial<Item> & { category?: string; categoryId?: n
     level: item.level ?? 1,
     notes: item.notes ?? "",
     acquiredAt: item.acquiredAt ?? new Date().toISOString().slice(0, 10),
+    partsCount: typeof item.partsCount === "number" ? item.partsCount : 0,
+    partsTotal: typeof item.partsTotal === "number" ? Math.max(1, item.partsTotal) : 5,
   } as Item;
 }
 
@@ -59,6 +61,8 @@ export interface Item {
   level: number;
   notes: string;
   acquiredAt: string;
+  partsCount: number;
+  partsTotal: number;
 }
 
 export interface Profile {
@@ -152,7 +156,7 @@ export function saveToStorage(data: SaveData) {
 }
 
 // --- CSV ---
-const HEADERS = ["section", "id", "kind", "name", "categoryId", "category", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
+const HEADERS = ["section", "id", "kind", "name", "categoryId", "category", "rarity", "level", "notes", "acquiredAt", "partsCount", "partsTotal", "envoyName", "motto", "realm"];
 
 function csvEscape(v: string | number): string {
   const s = String(v ?? "");
@@ -193,7 +197,7 @@ export function exportCSV(data: SaveData): string {
   );
   for (const it of data.items) {
     rows.push(
-      ["item", it.id, it.kind, it.name, it.categoryId, it.category ?? getCategoryName(it.categoryId), it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
+      ["item", it.id, it.kind, it.name, it.categoryId, it.category ?? getCategoryName(it.categoryId), it.rarity, it.level, it.notes, it.acquiredAt, it.partsCount, it.partsTotal, "", "", ""]
         .map(csvEscape)
         .join(","),
     );
@@ -256,6 +260,8 @@ export function importCSV(text: string): SaveData {
           level: Number(row[idx("level")]) || 1,
           notes: row[idx("notes")] || "",
           acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
+          partsCount: Number(row[idx("partsCount")]) || 0,
+          partsTotal: Number(row[idx("partsTotal")]) || 5,
         }),
       );
     }

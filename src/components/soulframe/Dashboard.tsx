@@ -69,6 +69,8 @@ export function Dashboard() {
   const [activeSection, setActiveSection] = useState<"items" | "armor">("items");
   const [searchQuery, setItemSearchQuery] = useState("");
   const [setSearchQuery, setSetSearchQuery] = useState("");
+  const [itemFilter, setItemFilter] = useState<"all" | "complete" | "incomplete">("all");
+  const [setFilter, setSetFilter] = useState<"all" | "complete" | "incomplete">("all");
   const [newSetName, setNewSetName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -143,6 +145,8 @@ export function Dashboard() {
       level: 1,
       notes: "",
       acquiredAt: new Date().toISOString().slice(0, 10),
+      partsCount: 0,
+      partsTotal: 5,
     };
     persistMemory({ ...data, items: [newItem, ...data.items] });
   };
@@ -257,22 +261,52 @@ export function Dashboard() {
   const showCategoryFilters = activeKind !== "pact";
 
   const searchLower = searchQuery.trim().toLowerCase();
+  const itemCompletionCounts = useMemo(() => {
+    const all = data.items.length;
+    const complete = data.items.filter((item) => item.partsCount >= item.partsTotal).length;
+    const incomplete = all - complete;
+    return { all, complete, incomplete };
+  }, [data.items]);
+
   const filteredItems = useMemo(() => {
-    if (!searchLower) return null;
-    return data.items.filter((it) => {
-      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind} ${it.category ?? ""}`.toLowerCase();
-      return hay.includes(searchLower);
+    const baseItems = searchLower
+      ? data.items.filter((it) => {
+          const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind} ${it.category ?? ""}`.toLowerCase();
+          return hay.includes(searchLower);
+        })
+      : data.items;
+
+    return baseItems.filter((it) => {
+      const complete = it.partsCount >= it.partsTotal;
+      if (itemFilter === "complete" && !complete) return false;
+      if (itemFilter === "incomplete" && complete) return false;
+      return true;
     });
-  }, [data.items, searchLower]);
+  }, [data.items, searchLower, itemFilter]);
+
+  const setCompletionCounts = useMemo(() => {
+    const all = data.armorSets.length;
+    const complete = data.armorSets.filter((set) => [set.helmetOwned, set.chestOwned, set.legsOwned].filter(Boolean).length === 3).length;
+    const incomplete = all - complete;
+    return { all, complete, incomplete };
+  }, [data.armorSets]);
 
   const filteredArmorSets = useMemo(() => {
     const query = setSearchQuery.trim().toLowerCase();
-    if (!query) return data.armorSets;
-    return data.armorSets.filter((set) => {
-      const hay = `${set.name} ${set.helmetCount}/${set.helmetTotal} elmo ${set.chestCount}/${set.chestTotal} couraça ${set.legsCount}/${set.legsTotal} calças`.toLowerCase();
-      return hay.includes(query);
+    const baseSets = query
+      ? data.armorSets.filter((set) => {
+          const hay = `${set.name} ${set.helmetCount}/${set.helmetTotal} elmo ${set.chestCount}/${set.chestTotal} couraça ${set.legsCount}/${set.legsTotal} calças`.toLowerCase();
+          return hay.includes(query);
+        })
+      : data.armorSets;
+
+    return baseSets.filter((set) => {
+      const complete = [set.helmetOwned, set.chestOwned, set.legsOwned].filter(Boolean).length === 3;
+      if (setFilter === "complete" && !complete) return false;
+      if (setFilter === "incomplete" && complete) return false;
+      return true;
     });
-  }, [data.armorSets, setSearchQuery]);
+  }, [data.armorSets, setSearchQuery, setFilter]);
 
   return (
     <div className="min-h-screen w-full">
@@ -417,15 +451,27 @@ export function Dashboard() {
             </section>
 
             <section>
-          {filteredItems ? (
+          {searchQuery ? (
             <>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <h3 className="text-lg font-display text-gold">
-                  Resultados da Busca
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {filteredItems.length} relíquia{filteredItems.length !== 1 ? "s" : ""} encontrada{filteredItems.length !== 1 ? "s" : ""}
-                </p>
+                <h3 className="text-lg font-display text-gold">Resultados da Busca</h3>
+                <p className="text-sm text-muted-foreground">{filteredItems.length} relíquia{filteredItems.length !== 1 ? "s" : ""} encontrada{filteredItems.length !== 1 ? "s" : ""}</p>
+              </div>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {[
+                  { key: "all", label: "Todos", count: itemCompletionCounts.all },
+                  { key: "complete", label: "Completos", count: itemCompletionCounts.complete },
+                  { key: "incomplete", label: "Incompletos", count: itemCompletionCounts.incomplete },
+                ].map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={() => setItemFilter(filter.key as "all" | "complete" | "incomplete")}
+                    className={`rounded-full border px-3 py-1 text-sm ${itemFilter === filter.key ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {filter.label} ({filter.count})
+                  </button>
+                ))}
               </div>
               {filteredItems.length === 0 ? (
                 <Card className="rune-card border-dashed">
@@ -437,12 +483,7 @@ export function Dashboard() {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {filteredItems.map((it) => (
-                    <ItemCard
-                      key={it.id}
-                      item={it}
-                      onUpdate={updateItem}
-                      onDelete={deleteItem}
-                    />
+                    <ItemCard key={it.id} item={it} onUpdate={updateItem} onDelete={deleteItem} />
                   ))}
                 </div>
               )}
@@ -461,9 +502,27 @@ export function Dashboard() {
                     );
                   })}
                 </TabsList>
-                <Button onClick={() => addItem(activeKind)} variant="default">
-                  <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : activeKind === "totem" ? "Totem" : "Runa"}
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: "all", label: "Todos", count: itemCompletionCounts.all },
+                      { key: "complete", label: "Completos", count: itemCompletionCounts.complete },
+                      { key: "incomplete", label: "Incompletos", count: itemCompletionCounts.incomplete },
+                    ].map((filter) => (
+                      <button
+                        key={filter.key}
+                        type="button"
+                        onClick={() => setItemFilter(filter.key as "all" | "complete" | "incomplete")}
+                        className={`rounded-full border px-3 py-1 text-sm ${itemFilter === filter.key ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {filter.label} ({filter.count})
+                      </button>
+                    ))}
+                  </div>
+                  <Button onClick={() => addItem(activeKind)} variant="default">
+                    <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : activeKind === "totem" ? "Totem" : "Runa"}
+                  </Button>
+                </div>
               </div>
 
               {showCategoryFilters && (
@@ -491,7 +550,7 @@ export function Dashboard() {
               {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
                 <TabsContent key={k} value={k} className="mt-0">
                   <ItemList
-                    items={data.items.filter((i) => {
+                    items={filteredItems.filter((i) => {
                       if (i.kind !== k) return false;
                       if (k === "pact") return true;
                       return activeCategory === "Todas" || i.categoryId === Number(activeCategory);
@@ -515,6 +574,22 @@ export function Dashboard() {
                   <h3 className="text-2xl font-display text-gold">Cadastre seus conjuntos e acompanhe quantas partes você já possui</h3>
                 </div>
                 <div className="flex flex-col gap-2 md:w-[420px]">
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: "all", label: "Todos", count: setCompletionCounts.all },
+                      { key: "complete", label: "Completos", count: setCompletionCounts.complete },
+                      { key: "incomplete", label: "Incompletos", count: setCompletionCounts.incomplete },
+                    ].map((filter) => (
+                      <button
+                        key={filter.key}
+                        type="button"
+                        onClick={() => setSetFilter(filter.key as "all" | "complete" | "incomplete")}
+                        className={`rounded-full border px-3 py-1 text-sm ${setFilter === filter.key ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {filter.label} ({filter.count})
+                      </button>
+                    ))}
+                  </div>
                   <div className="flex gap-2">
                     <Input
                       value={newSetName}
@@ -636,6 +711,33 @@ export function Dashboard() {
           </TabsContent>
         </Tabs>
 
+        <section className="mx-auto max-w-md">
+          <Card className="rune-card border-border/60 bg-card/80 shadow-none">
+            <CardContent className="py-4">
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://widget.livepix.gg/embed/f06bf420-f6fb-4bc6-89d6-c73d42301f75"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0 rounded-md border border-border/70 bg-white p-1"
+                >
+                  <img
+                    src="https://widget.livepix.gg/embed/f06bf420-f6fb-4bc6-89d6-c73d42301f75"
+                    alt="QR Code de doação"
+                    className="h-24 w-24 rounded-md object-contain"
+                    loading="lazy"
+                  />
+                </a>
+                <div className="space-y-1 text-left">
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Doação</p>
+                  <p className="text-sm text-foreground">Quer me pagar um café?</p>
+                  <p className="text-xs text-muted-foreground">Escaneie o QR para apoiar o projeto.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         <footer className="text-center text-sm text-muted-foreground py-8">
           <div className="divider-ornate mx-auto w-40 mb-3" />
           <p className="italic text-base">"Tudo que é lembrado, nunca se perde."</p>
@@ -705,6 +807,7 @@ function ItemCard({
 }) {
   const meta = KIND_META[item.kind];
   const Icon = meta.icon;
+  const complete = item.partsCount >= item.partsTotal;
 
   return (
     <Card className="rune-card overflow-hidden">
@@ -779,6 +882,39 @@ function ItemCard({
             />
           </Field>
         </div>
+        <div className="rounded-lg border border-border bg-card/80 p-3 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-medium text-foreground">Progresso</span>
+            <span className="text-muted-foreground">{item.partsCount}/{item.partsTotal}</span>
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <Input
+              type="number"
+              min={0}
+              max={item.partsTotal}
+              value={item.partsCount}
+              onChange={(e) =>
+                onUpdate(item.id, {
+                  partsCount: Math.max(0, Math.min(Number(e.target.value) || 0, item.partsTotal)),
+                })
+              }
+              className="h-9 w-20"
+            />
+            <span className="text-muted-foreground">de</span>
+            <Input
+              type="number"
+              min={1}
+              value={item.partsTotal}
+              onChange={(e) =>
+                onUpdate(item.id, {
+                  partsCount: Math.min(item.partsCount, Math.max(1, Number(e.target.value) || 1)),
+                  partsTotal: Math.max(1, Number(e.target.value) || 1),
+                })
+              }
+              className="h-9 w-20"
+            />
+          </div>
+        </div>
         <Field label="Notas">
           <Textarea
             rows={2}
@@ -787,6 +923,13 @@ function ItemCard({
             placeholder="Lore sussurrada, efeitos, origens…"
           />
         </Field>
+        <div className="flex items-center justify-between rounded-lg border border-border bg-card/70 px-3 py-2 text-sm">
+          <span>Tenho o item completo</span>
+          <label className="flex items-center gap-2 text-primary">
+            <input type="checkbox" checked={complete} disabled />
+            <span>{complete ? "Completo" : `Em progresso (${item.partsCount}/${item.partsTotal})`}</span>
+          </label>
+        </div>
         <div className="flex justify-between items-center pt-1">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={rarityClass[item.rarity]}>{item.rarity}</Badge>
