@@ -9,6 +9,7 @@ import {
   Plus,
   Trash2,
   Feather,
+  Shield,
   Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -400,7 +401,7 @@ export function Dashboard() {
         </section>
 
         {/* Stats */}
-        <section className="grid grid-cols-3 gap-4">
+        <section className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
             const m = KIND_META[k];
             const Icon = m.icon;
@@ -420,6 +421,13 @@ export function Dashboard() {
               </div>
             );
           })}
+          <div className="rune-card rounded-xl p-5 flex items-center gap-4" style={{ borderColor: "color-mix(in oklab, var(--ember) 35%, transparent)" }}>
+            <Shield className="h-8 w-8 text-[color:var(--ember)]" />
+            <div>
+              <p className="text-sm uppercase tracking-widest text-muted-foreground">Sets</p>
+              <p className="text-3xl font-display text-gold">{data.armorSets.length}</p>
+            </div>
+          </div>
         </section>
 
         <Tabs value={activeSection} onValueChange={(value) => setActiveSection(value as "items" | "armor")} className="space-y-6">
