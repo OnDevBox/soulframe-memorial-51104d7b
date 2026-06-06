@@ -716,13 +716,13 @@ export function Dashboard() {
             <CardContent className="py-4">
               <div className="flex items-center gap-4">
                 <a
-                  href="https://widget.livepix.gg/embed/f06bf420-f6fb-4bc6-89d6-c73d42301f75"
+                  href="https://livepix.gg/rafaeldafranca"
                   target="_blank"
                   rel="noreferrer"
                   className="shrink-0 rounded-md border border-border/70 bg-white p-1"
                 >
                   <img
-                    src="https://widget.livepix.gg/embed/f06bf420-f6fb-4bc6-89d6-c73d42301f75"
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Flivepix.gg%2Frafaeldafranca"
                     alt="QR Code de doação"
                     className="h-24 w-24 rounded-md object-contain"
                     loading="lazy"
