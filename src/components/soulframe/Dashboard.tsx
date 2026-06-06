@@ -40,19 +40,19 @@ const KIND_META: Record<
   ItemKind,
   { label: string; icon: typeof Sparkles; color: string; accent: string }
 > = {
-  rune: { label: "Runes", icon: Sparkles, color: "text-[color:var(--rune)]", accent: "var(--rune)" },
-  pact: { label: "Pacts", icon: ScrollText, color: "text-[color:var(--pact)]", accent: "var(--pact)" },
-  weapon: { label: "Weapons", icon: Swords, color: "text-[color:var(--weapon)]", accent: "var(--weapon)" },
+  rune: { label: "Runas", icon: Sparkles, color: "text-[color:var(--rune)]", accent: "var(--rune)" },
+  pact: { label: "Pactos", icon: ScrollText, color: "text-[color:var(--pact)]", accent: "var(--pact)" },
+  weapon: { label: "Armas", icon: Swords, color: "text-[color:var(--weapon)]", accent: "var(--weapon)" },
 };
 
-const RARITIES: Item["rarity"][] = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
+const RARITIES: Item["rarity"][] = ["Comum", "Incomum", "Raro", "Épico", "Lendário"];
 
 const rarityClass: Record<Item["rarity"], string> = {
-  Common: "bg-muted text-muted-foreground border-border",
-  Uncommon: "bg-accent/30 text-accent-foreground border-accent/40",
-  Rare: "bg-[color:var(--rune)]/20 text-[color:var(--rune)] border-[color:var(--rune)]/40",
-  Epic: "bg-[color:var(--pact)]/20 text-[color:var(--pact)] border-[color:var(--pact)]/40",
-  Legendary: "bg-[color:var(--ember)]/20 text-[color:var(--ember)] border-[color:var(--ember)]/40",
+  Comum: "bg-muted text-muted-foreground border-border",
+  Incomum: "bg-accent/30 text-accent-foreground border-accent/40",
+  Raro: "bg-[color:var(--rune)]/20 text-[color:var(--rune)] border-[color:var(--rune)]/40",
+  Épico: "bg-[color:var(--pact)]/20 text-[color:var(--pact)] border-[color:var(--pact)]/40",
+  Lendário: "bg-[color:var(--ember)]/20 text-[color:var(--ember)] border-[color:var(--ember)]/40",
 };
 
 export function Dashboard() {
@@ -70,12 +70,12 @@ export function Dashboard() {
 
   const handleSaveStick = () => {
     saveToStorage(data);
-    toast.success("Memory inscribed", { description: "Your tale is etched into the memorystick." });
+    toast.success("Memória inscrita", { description: "Sua história foi gravada no memorystick." });
   };
 
   const handleLoadStick = () => {
     setData(loadFromStorage());
-    toast.success("Memory restored", { description: "Echoes recalled from the stone." });
+    toast.success("Memória restaurada", { description: "Ecos recuperados da pedra." });
   };
 
   const handleExport = () => {
@@ -84,10 +84,10 @@ export function Dashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `soulframe-${data.profile.envoyName || "envoy"}.csv`;
+    a.download = `soulframe-${data.profile.envoyName || "enviado"}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Scroll exported");
+    toast.success("Pergaminho exportado");
   };
 
   const handleImportClick = () => fileRef.current?.click();
@@ -99,9 +99,9 @@ export function Dashboard() {
     try {
       const parsed = importCSV(text);
       setData(parsed);
-      toast.success("Scroll deciphered", { description: `${parsed.items.length} relic(s) loaded.` });
+      toast.success("Pergaminho decifrado", { description: `${parsed.items.length} relíquia(s) carregada(s).` });
     } catch {
-      toast.error("This scroll is unreadable.");
+      toast.error("Este pergaminho é ilegível.");
     }
     e.target.value = "";
   };
@@ -115,7 +115,7 @@ export function Dashboard() {
       id: crypto.randomUUID(),
       kind,
       name: "",
-      rarity: "Common",
+      rarity: "Comum",
       level: 1,
       notes: "",
       acquiredAt: new Date().toISOString().slice(0, 10),
@@ -155,22 +155,22 @@ export function Dashboard() {
               <Feather className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl text-gold font-display">Soulframe Codex</h1>
-              <p className="text-xs text-muted-foreground italic">Chronicle of the Envoy</p>
+              <h1 className="text-xl md:text-2xl text-gold font-display">Códice Soulframe</h1>
+              <p className="text-sm text-muted-foreground italic">Crônica do Enviado</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleLoadStick}>
-              <Upload className="h-4 w-4 mr-1" /> Load Memory
+              <Upload className="h-4 w-4 mr-1" /> Carregar Memória
             </Button>
             <Button variant="outline" size="sm" onClick={handleSaveStick}>
-              <Save className="h-4 w-4 mr-1" /> Save Memory
+              <Save className="h-4 w-4 mr-1" /> Salvar Memória
             </Button>
             <Button variant="outline" size="sm" onClick={handleImportClick}>
-              <Upload className="h-4 w-4 mr-1" /> Import CSV
+              <Upload className="h-4 w-4 mr-1" /> Importar CSV
             </Button>
             <Button size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" /> Export CSV
+              <Download className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>
         </div>
@@ -181,34 +181,34 @@ export function Dashboard() {
         <section className="rune-card rounded-xl p-6 md:p-8">
           <div className="grid md:grid-cols-[1.2fr_2fr] gap-8 items-center">
             <div className="text-center md:text-left space-y-3">
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Envoy</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Enviado</p>
               <h2 className="text-4xl md:text-5xl font-display text-gold">
-                {data.profile.envoyName || "Nameless"}
+                {data.profile.envoyName || "Sem Nome"}
               </h2>
-              <p className="italic text-muted-foreground">"{data.profile.motto}"</p>
+              <p className="italic text-muted-foreground text-lg">"{data.profile.motto}"</p>
               <div className="flex gap-3 justify-center md:justify-start pt-2">
-                <Badge className="bg-primary/15 text-primary border border-primary/40">
-                  Level {data.profile.level}
+                <Badge className="bg-primary/15 text-primary border border-primary/40 text-sm">
+                  Nível {data.profile.level}
                 </Badge>
-                <Badge className="bg-accent/30 text-accent-foreground border border-accent/40">
+                <Badge className="bg-accent/30 text-accent-foreground border border-accent/40 text-sm">
                   {data.profile.realm}
                 </Badge>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Envoy Name">
+              <Field label="Nome do Enviado">
                 <Input
                   value={data.profile.envoyName}
                   onChange={(e) => updateProfile("envoyName", e.target.value)}
                 />
               </Field>
-              <Field label="Realm">
+              <Field label="Reino">
                 <Input
                   value={data.profile.realm}
                   onChange={(e) => updateProfile("realm", e.target.value)}
                 />
               </Field>
-              <Field label="Level">
+              <Field label="Nível">
                 <Input
                   type="number"
                   min={1}
@@ -216,7 +216,7 @@ export function Dashboard() {
                   onChange={(e) => updateProfile("level", Number(e.target.value) || 1)}
                 />
               </Field>
-              <Field label="Motto">
+              <Field label="Lema">
                 <Input
                   value={data.profile.motto}
                   onChange={(e) => updateProfile("motto", e.target.value)}
@@ -239,7 +239,7 @@ export function Dashboard() {
               >
                 <Icon className={`h-8 w-8 ${m.color}`} />
                 <div>
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  <p className="text-sm uppercase tracking-widest text-muted-foreground">
                     {m.label}
                   </p>
                   <p className="text-3xl font-display text-gold">{counts[k]}</p>
@@ -265,7 +265,7 @@ export function Dashboard() {
                 })}
               </TabsList>
               <Button onClick={() => addItem(activeKind)} variant="default">
-                <Plus className="h-4 w-4 mr-1" /> Inscribe {KIND_META[activeKind].label.slice(0, -1)}
+                <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
               </Button>
             </div>
 
@@ -282,9 +282,9 @@ export function Dashboard() {
           </Tabs>
         </section>
 
-        <footer className="text-center text-xs text-muted-foreground py-8">
+        <footer className="text-center text-sm text-muted-foreground py-8">
           <div className="divider-ornate mx-auto w-40 mb-3" />
-          <p className="italic">"All things remembered, never lost."</p>
+          <p className="italic text-base">"Tudo que é lembrado, nunca se perde."</p>
         </footer>
       </main>
     </div>
@@ -294,7 +294,7 @@ export function Dashboard() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-widest text-muted-foreground">{label}</Label>
+      <Label className="text-sm uppercase tracking-widest text-muted-foreground">{label}</Label>
       {children}
     </div>
   );
@@ -315,11 +315,16 @@ function ItemList({
   const Icon = meta.icon;
 
   if (items.length === 0) {
+    const emptyMsg: Record<ItemKind, string> = {
+      rune: "Nenhuma runa inscrita no seu códice ainda.",
+      pact: "Nenhum pacto inscrito no seu códice ainda.",
+      weapon: "Nenhuma arma inscrita no seu códice ainda.",
+    };
     return (
       <Card className="rune-card border-dashed">
         <CardContent className="py-16 text-center">
           <Icon className={`h-10 w-10 mx-auto mb-3 opacity-60 ${meta.color}`} />
-          <p className="text-muted-foreground italic">No {meta.label.toLowerCase()} yet inscribed in your codex.</p>
+          <p className="text-muted-foreground italic text-base">{emptyMsg[kind]}</p>
         </CardContent>
       </Card>
     );
@@ -332,7 +337,7 @@ function ItemList({
           <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2 text-lg font-display">
               <Icon className={`h-5 w-5 ${meta.color}`} />
-              <span className="truncate">{it.name || <em className="text-muted-foreground">Unnamed</em>}</span>
+              <span className="truncate">{it.name || <em className="text-muted-foreground">Sem Nome</em>}</span>
             </CardTitle>
             <Button
               variant="ghost"
@@ -345,10 +350,10 @@ function ItemList({
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Name">
+              <Field label="Nome">
                 <Input value={it.name} onChange={(e) => onUpdate(it.id, { name: e.target.value })} />
               </Field>
-              <Field label="Level">
+              <Field label="Nível">
                 <Input
                   type="number"
                   min={1}
@@ -356,7 +361,7 @@ function ItemList({
                   onChange={(e) => onUpdate(it.id, { level: Number(e.target.value) || 1 })}
                 />
               </Field>
-              <Field label="Rarity">
+              <Field label="Raridade">
                 <Select
                   value={it.rarity}
                   onValueChange={(v) => onUpdate(it.id, { rarity: v as Item["rarity"] })}
@@ -371,7 +376,7 @@ function ItemList({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Acquired">
+              <Field label="Adquirido">
                 <Input
                   type="date"
                   value={it.acquiredAt}
@@ -379,17 +384,17 @@ function ItemList({
                 />
               </Field>
             </div>
-            <Field label="Notes">
+            <Field label="Notas">
               <Textarea
                 rows={2}
                 value={it.notes}
                 onChange={(e) => onUpdate(it.id, { notes: e.target.value })}
-                placeholder="Whispered lore, effects, origins…"
+                placeholder="Lore sussurrada, efeitos, origens…"
               />
             </Field>
             <div className="flex justify-between items-center pt-1">
               <Badge variant="outline" className={rarityClass[it.rarity]}>{it.rarity}</Badge>
-              <span className="text-xs text-muted-foreground">Lv. {it.level}</span>
+              <span className="text-sm text-muted-foreground">Nv. {it.level}</span>
             </div>
           </CardContent>
         </Card>

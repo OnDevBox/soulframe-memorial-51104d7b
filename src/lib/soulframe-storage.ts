@@ -4,7 +4,7 @@ export interface Item {
   id: string;
   kind: ItemKind;
   name: string;
-  rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary";
+  rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
   level: number;
   notes: string;
   acquiredAt: string;
@@ -26,8 +26,8 @@ const KEY = "soulframe-save-v1";
 
 export const defaultData: SaveData = {
   profile: {
-    envoyName: "Wanderer",
-    motto: "From slumber, I awaken.",
+    envoyName: "Andarilho",
+    motto: "Do sono, eu despertar.",
     level: 1,
     realm: "Midrath",
   },
@@ -128,8 +128,8 @@ export function importCSV(text: string): SaveData {
       data.items.push({
         id: row[idx("id")] || crypto.randomUUID(),
         kind: (row[idx("kind")] as ItemKind) || "rune",
-        name: row[idx("name")] || "Unknown",
-        rarity: (row[idx("rarity")] as Item["rarity"]) || "Common",
+        name: row[idx("name")] || "Desconhecido",
+        rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum",
         level: Number(row[idx("level")]) || 1,
         notes: row[idx("notes")] || "",
         acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
