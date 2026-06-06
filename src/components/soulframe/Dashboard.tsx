@@ -70,12 +70,12 @@ export function Dashboard() {
 
   const handleSaveStick = () => {
     saveToStorage(data);
-    toast.success("Memory inscribed", { description: "Your tale is etched into the memorystick." });
+    toast.success("Memória inscrita", { description: "Sua história foi gravada no memorystick." });
   };
 
   const handleLoadStick = () => {
     setData(loadFromStorage());
-    toast.success("Memory restored", { description: "Echoes recalled from the stone." });
+    toast.success("Memória restaurada", { description: "Ecos recuperados da pedra." });
   };
 
   const handleExport = () => {
@@ -84,10 +84,10 @@ export function Dashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `soulframe-${data.profile.envoyName || "envoy"}.csv`;
+    a.download = `soulframe-${data.profile.envoyName || "enviado"}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Scroll exported");
+    toast.success("Pergaminho exportado");
   };
 
   const handleImportClick = () => fileRef.current?.click();
@@ -99,9 +99,9 @@ export function Dashboard() {
     try {
       const parsed = importCSV(text);
       setData(parsed);
-      toast.success("Scroll deciphered", { description: `${parsed.items.length} relic(s) loaded.` });
+      toast.success("Pergaminho decifrado", { description: `${parsed.items.length} relíquia(s) carregada(s).` });
     } catch {
-      toast.error("This scroll is unreadable.");
+      toast.error("Este pergaminho é ilegível.");
     }
     e.target.value = "";
   };
@@ -115,7 +115,7 @@ export function Dashboard() {
       id: crypto.randomUUID(),
       kind,
       name: "",
-      rarity: "Common",
+      rarity: "Comum",
       level: 1,
       notes: "",
       acquiredAt: new Date().toISOString().slice(0, 10),
