@@ -66,7 +66,10 @@ export function Dashboard() {
   const [savedData, setSavedData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
   const [activeCategory, setActiveCategory] = useState<string>("Todas");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSection, setActiveSection] = useState<"items" | "armor">("items");
+  const [searchQuery, setItemSearchQuery] = useState("");
+  const [setSearchQuery, setSetSearchQuery] = useState("");
+  const [newSetName, setNewSetName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -155,6 +158,96 @@ export function Dashboard() {
     persistMemory({ ...data, items: data.items.filter((it) => it.id !== id) });
   };
 
+  const addArmorSet = () => {
+    const name = newSetName.trim();
+    if (!name) return;
+    persistMemory({
+      ...data,
+      armorSets: [
+        {
+          id: crypto.randomUUID(),
+          name,
+          helmetCount: 0,
+          helmetTotal: 5,
+          helmetOwned: false,
+          chestCount: 0,
+          chestTotal: 5,
+          chestOwned: false,
+          legsCount: 0,
+          legsTotal: 5,
+          legsOwned: false,
+        },
+        ...data.armorSets,
+      ],
+    });
+    setNewSetName("");
+  };
+
+  const updateArmorPartCount = (
+    setId: string,
+    part: "helmet" | "chest" | "legs",
+    nextCount: number,
+  ) => {
+    persistMemory({
+      ...data,
+      armorSets: data.armorSets.map((set) => {
+        if (set.id !== setId) return set;
+        const max = part === "helmet" ? set.helmetTotal : part === "chest" ? set.chestTotal : set.legsTotal;
+        const safeCount = Math.max(0, Math.min(nextCount, max));
+        return {
+          ...set,
+          [part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount"]: safeCount,
+        };
+      }),
+    });
+  };
+
+  const updateArmorPartOwned = (
+    setId: string,
+    part: "helmet" | "chest" | "legs",
+    nextOwned: boolean,
+  ) => {
+    persistMemory({
+      ...data,
+      armorSets: data.armorSets.map((set) =>
+        set.id === setId
+          ? {
+              ...set,
+              [part === "helmet" ? "helmetOwned" : part === "chest" ? "chestOwned" : "legsOwned"]: nextOwned,
+            }
+          : set,
+      ),
+    });
+  };
+
+  const updateArmorPartTotal = (
+    setId: string,
+    part: "helmet" | "chest" | "legs",
+    nextTotal: number,
+  ) => {
+    persistMemory({
+      ...data,
+      armorSets: data.armorSets.map((set) => {
+        if (set.id !== setId) return set;
+        const safeTotal = Math.max(1, nextTotal);
+        const countKey = part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount";
+        const totalKey = part === "helmet" ? "helmetTotal" : part === "chest" ? "chestTotal" : "legsTotal";
+        return {
+          ...set,
+          [totalKey]: safeTotal,
+          [countKey]: Math.min(set[countKey as keyof typeof set] as number, safeTotal),
+        };
+      }),
+    });
+  };
+
+  const deleteArmorSet = (setId: string) => {
+    persistMemory({
+      ...data,
+      armorSets: data.armorSets.filter((set) => set.id !== setId),
+    });
+  };
+
   const counts = useMemo(() => {
     const c = { rune: 0, pact: 0, weapon: 0, totem: 0 } as Record<ItemKind, number>;
     data.items.forEach((i) => (c[i.kind] += 1));
@@ -171,6 +264,15 @@ export function Dashboard() {
       return hay.includes(searchLower);
     });
   }, [data.items, searchLower]);
+
+  const filteredArmorSets = useMemo(() => {
+    const query = setSearchQuery.trim().toLowerCase();
+    if (!query) return data.armorSets;
+    return data.armorSets.filter((set) => {
+      const hay = `${set.name} ${set.helmetCount}/${set.helmetTotal} elmo ${set.chestCount}/${set.chestTotal} couraça ${set.legsCount}/${set.legsTotal} calças`.toLowerCase();
+      return hay.includes(query);
+    });
+  }, [data.armorSets, setSearchQuery]);
 
   return (
     <div className="min-h-screen w-full">
@@ -285,29 +387,36 @@ export function Dashboard() {
           })}
         </section>
 
-        {/* Search */}
-        <section className="max-w-xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar runas, pactos, armas, totems, notas, raridade…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 py-5 text-base"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm"
-              >
-                Limpar
-              </button>
-            )}
+        <Tabs value={activeSection} onValueChange={(value) => setActiveSection(value as "items" | "armor")} className="space-y-6">
+          <div className="flex justify-center">
+            <TabsList className="inline-flex h-auto w-full max-w-2xl items-stretch rounded-2xl border border-border/80 bg-card/90 p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur md:w-auto md:min-w-[420px]">
+              <TabsTrigger value="items" className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground transition-all data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm md:px-6 md:text-base">Itens</TabsTrigger>
+              <TabsTrigger value="armor" className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground transition-all data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:shadow-sm md:px-6 md:text-base">Sets de Armadura</TabsTrigger>
+            </TabsList>
           </div>
-        </section>
 
-        {/* Items */}
-        <section>
+          <TabsContent value="items" className="mt-0 space-y-6">
+            <section className="max-w-xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar runas, pactos, armas, totems, notas, raridade…"
+                  value={searchQuery}
+                  onChange={(e) => setItemSearchQuery(e.target.value)}
+                  className="pl-10 py-5 text-base"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setItemSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm"
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+            </section>
+
+            <section>
           {filteredItems ? (
             <>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -395,7 +504,137 @@ export function Dashboard() {
               ))}
             </Tabs>
           )}
-        </section>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="armor" className="mt-0">
+            <section className="rune-card rounded-xl p-6 md:p-8 space-y-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Sets de Armadura</p>
+                  <h3 className="text-2xl font-display text-gold">Cadastre seus conjuntos e acompanhe quantas partes você já possui</h3>
+                </div>
+                <div className="flex flex-col gap-2 md:w-[420px]">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSetName}
+                      onChange={(e) => setNewSetName(e.target.value)}
+                      placeholder="Nome do set"
+                      className="flex-1"
+                    />
+                    <Button onClick={addArmorSet} variant="default">Adicionar set</Button>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={setSearchQuery}
+                      onChange={(e) => setSetSearchQuery(e.target.value)}
+                      placeholder="Buscar set por nome ou peça…"
+                      className="pl-10"
+                    />
+                    {setSearchQuery && (
+                      <button
+                        onClick={() => setSetSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {filteredArmorSets.length === 0 ? (
+                <Card className="rune-card border-dashed">
+                  <CardContent className="py-10 text-center text-muted-foreground italic">
+                    Nenhum set cadastrado ainda. Adicione um nome e comece a marcar as partes que você possui.
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {filteredArmorSets.map((set) => {
+                    const completedParts = [set.helmetOwned, set.chestOwned, set.legsOwned].filter(Boolean).length;
+                    const complete = completedParts === 3;
+                    const progressLabel = `${completedParts}/3`;
+                    const parts = [
+                      { key: "helmet", label: "Elmo", count: set.helmetCount, total: set.helmetTotal },
+                      { key: "chest", label: "Couraça", count: set.chestCount, total: set.chestTotal },
+                      { key: "legs", label: "Calças", count: set.legsCount, total: set.legsTotal },
+                    ] as const;
+                    return (
+                      <Card key={set.id} className="rune-card overflow-hidden">
+                        <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3 space-y-0">
+                          <div>
+                            <CardTitle className="text-lg font-display text-gold">{set.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">Progresso: {progressLabel} partes completas</p>
+                            <p className="text-xs text-muted-foreground">Use os campos para registrar 2/5, 3/5, etc.</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteArmorSet(set.id)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="grid gap-2">
+                            {parts.map((part) => (
+                              <div
+                                key={part.key}
+                                className="rounded-lg border border-border bg-card/80 p-3 text-sm"
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={part.key === "helmet" ? set.helmetOwned : part.key === "chest" ? set.chestOwned : set.legsOwned}
+                                      onChange={(e) =>
+                                        updateArmorPartOwned(set.id, part.key, e.target.checked)
+                                      }
+                                    />
+                                    <span className="font-medium text-foreground">{part.label}</span>
+                                  </div>
+                                  <span className="text-muted-foreground">{part.count}/{part.total}</span>
+                                </div>
+                                <div className="mt-2 flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={part.total}
+                                    value={part.count}
+                                    onChange={(e) => updateArmorPartCount(set.id, part.key, Number(e.target.value) || 0)}
+                                    className="h-9 w-20"
+                                  />
+                                  <span className="text-muted-foreground">de</span>
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    value={part.total}
+                                    onChange={(e) => updateArmorPartTotal(set.id, part.key, Number(e.target.value) || 1)}
+                                    className="h-9 w-20"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between rounded-lg border border-border bg-card/70 px-3 py-2 text-sm">
+                            <span>Tenho o set inteiro</span>
+                            <label className="flex items-center gap-2 text-primary">
+                              <input type="checkbox" checked={complete} disabled />
+                              <span>{complete ? "Completo" : `Em progresso (${progressLabel})`}</span>
+                            </label>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </TabsContent>
+        </Tabs>
 
         <footer className="text-center text-sm text-muted-foreground py-8">
           <div className="divider-ornate mx-auto w-40 mb-3" />

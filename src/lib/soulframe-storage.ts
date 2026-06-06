@@ -1,6 +1,6 @@
 export type ItemKind = "rune" | "pact" | "weapon" | "totem";
 
-export const APP_VERSION = "0.0.8";
+export const APP_VERSION = "0.1.0";
 
 export interface CategoryDefinition {
   id: number;
@@ -68,9 +68,28 @@ export interface Profile {
   realm: string;
 }
 
+export interface ArmorSet {
+  id: string;
+  name: string;
+  helmetCount: number;
+  helmetTotal: number;
+  helmetOwned: boolean;
+  chestCount: number;
+  chestTotal: number;
+  chestOwned: boolean;
+  legsCount: number;
+  legsTotal: number;
+  legsOwned: boolean;
+  // Legacy compatibility with older boolean-based saves.
+  helmet?: boolean;
+  chest?: boolean;
+  legs?: boolean;
+}
+
 export interface SaveData {
   profile: Profile;
   items: Item[];
+  armorSets: ArmorSet[];
 }
 
 const KEY = "soulframe-save-v1";
@@ -83,12 +102,35 @@ export const defaultData: SaveData = {
     realm: "Midrath",
   },
   items: [],
+  armorSets: [],
 };
 
 function normalizeSaveData(input: Partial<SaveData> = {}): SaveData {
   return {
     profile: { ...defaultData.profile, ...(input.profile ?? {}) },
     items: (input.items ?? []).map((item) => normalizeItem(item as Partial<Item>)),
+    armorSets: (input.armorSets ?? []).map((set) => {
+      const helmetCount = typeof set.helmetCount === "number" ? set.helmetCount : Number(set.helmet ?? 0);
+      const chestCount = typeof set.chestCount === "number" ? set.chestCount : Number(set.chest ?? 0);
+      const legsCount = typeof set.legsCount === "number" ? set.legsCount : Number(set.legs ?? 0);
+
+      return {
+        id: set.id ?? crypto.randomUUID(),
+        name: set.name ?? "Set de Armadura",
+        helmetCount,
+        helmetTotal: typeof set.helmetTotal === "number" ? set.helmetTotal : 5,
+        helmetOwned: Boolean(set.helmetOwned ?? set.helmet ?? false),
+        chestCount,
+        chestTotal: typeof set.chestTotal === "number" ? set.chestTotal : 5,
+        chestOwned: Boolean(set.chestOwned ?? set.chest ?? false),
+        legsCount,
+        legsTotal: typeof set.legsTotal === "number" ? set.legsTotal : 5,
+        legsOwned: Boolean(set.legsOwned ?? set.legs ?? false),
+        helmet: Boolean(set.helmet),
+        chest: Boolean(set.chest),
+        legs: Boolean(set.legs),
+      };
+    }),
   };
 }
 
@@ -190,7 +232,7 @@ export function importCSV(text: string): SaveData {
   if (lines.length === 0) return defaultData;
   const headers = parseCSVLine(lines[0]);
   const idx = (h: string) => headers.indexOf(h);
-  const data: SaveData = { profile: { ...defaultData.profile }, items: [] };
+  const data: SaveData = { profile: { ...defaultData.profile }, items: [], armorSets: [] };
   for (let i = 1; i < lines.length; i++) {
     const row = parseCSVLine(lines[i]);
     const section = row[idx("section")];
