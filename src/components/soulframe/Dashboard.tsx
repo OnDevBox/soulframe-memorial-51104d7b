@@ -59,6 +59,7 @@ const rarityClass: Record<Item["rarity"], string> = {
 export function Dashboard() {
   const [data, setData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
+  const [searchQuery, setSearchQuery] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
