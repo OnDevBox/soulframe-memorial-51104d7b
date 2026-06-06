@@ -61,14 +61,22 @@ const rarityClass: Record<Item["rarity"], string> = {
 
 export function Dashboard() {
   const [data, setData] = useState<SaveData>(defaultData);
+  const [savedData, setSavedData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
   const [activeCategory, setActiveCategory] = useState<string>("Todas");
   const [searchQuery, setSearchQuery] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setData(loadFromStorage());
+    const loaded = loadFromStorage();
+    setData(loaded);
+    setSavedData(loaded);
   }, []);
+
+  const hasChanges = useMemo(
+    () => JSON.stringify(data) !== JSON.stringify(savedData),
+    [data, savedData],
+  );
 
   const persistMemory = (next: SaveData) => {
     setData(next);
@@ -76,11 +84,14 @@ export function Dashboard() {
 
   const handleSaveStick = () => {
     saveToStorage(data);
+    setSavedData(data);
     toast.success("Memória inscrita", { description: "Sua história foi gravada no memorystick." });
   };
 
   const handleLoadStick = () => {
-    setData(loadFromStorage());
+    const loaded = loadFromStorage();
+    setData(loaded);
+    setSavedData(loaded);
     toast.success("Memória restaurada", { description: "Ecos recuperados da pedra." });
   };
 
@@ -181,8 +192,14 @@ export function Dashboard() {
             <Button variant="outline" size="sm" onClick={handleLoadStick}>
               <Upload className="h-4 w-4 mr-1" /> Carregar Memória
             </Button>
-            <Button variant="outline" size="sm" onClick={handleSaveStick}>
-              <Save className="h-4 w-4 mr-1" /> Salvar Memória
+            <Button
+              variant={hasChanges ? "default" : "outline"}
+              size="sm"
+              onClick={handleSaveStick}
+              className={hasChanges ? "border-amber-400 bg-amber-500/15 text-amber-100 shadow-[0_0_0_1px_rgba(251,191,36,0.25)] animate-pulse" : ""}
+            >
+              <Save className="h-4 w-4 mr-1" />
+              {hasChanges ? "Salvar Memória • pendente" : "Salvar Memória"}
             </Button>
             <Button variant="outline" size="sm" onClick={handleImportClick}>
               <Upload className="h-4 w-4 mr-1" /> Importar CSV

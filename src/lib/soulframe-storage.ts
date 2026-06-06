@@ -1,15 +1,14 @@
 export type ItemKind = "rune" | "pact" | "weapon" | "totem";
 
 export const ITEM_CATEGORIES = [
-  "Espadas Longas",
-  "Espadões",
-  "Floretes",
+  "Lâminas Longas",
+  "Pesadas",
   "Armas de Haste",
   "Escudos",
   "Arcos",
   "Adagas",
-  "Lâminas Arremessáveis",
-  "Armas Mágicas",
+  "Lâminas curtas",
+  "Mágicas",
 ] as const;
 
 export interface Item {
