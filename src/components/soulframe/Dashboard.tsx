@@ -397,71 +397,7 @@ function ItemList({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {items.map((it) => (
-        <Card key={it.id} className="rune-card overflow-hidden">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="flex items-center gap-2 text-lg font-display">
-              <Icon className={`h-5 w-5 ${meta.color}`} />
-              <span className="truncate">{it.name || <em className="text-muted-foreground">Sem Nome</em>}</span>
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(it.id)}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Nome">
-                <Input value={it.name} onChange={(e) => onUpdate(it.id, { name: e.target.value })} />
-              </Field>
-              <Field label="Nível">
-                <Input
-                  type="number"
-                  min={1}
-                  value={it.level}
-                  onChange={(e) => onUpdate(it.id, { level: Number(e.target.value) || 1 })}
-                />
-              </Field>
-              <Field label="Raridade">
-                <Select
-                  value={it.rarity}
-                  onValueChange={(v) => onUpdate(it.id, { rarity: v as Item["rarity"] })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RARITIES.map((r) => (
-                      <SelectItem key={r} value={r}>{r}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Adquirido">
-                <Input
-                  type="date"
-                  value={it.acquiredAt}
-                  onChange={(e) => onUpdate(it.id, { acquiredAt: e.target.value })}
-                />
-              </Field>
-            </div>
-            <Field label="Notas">
-              <Textarea
-                rows={2}
-                value={it.notes}
-                onChange={(e) => onUpdate(it.id, { notes: e.target.value })}
-                placeholder="Lore sussurrada, efeitos, origens…"
-              />
-            </Field>
-            <div className="flex justify-between items-center pt-1">
-              <Badge variant="outline" className={rarityClass[it.rarity]}>{it.rarity}</Badge>
-              <span className="text-sm text-muted-foreground">Nv. {it.level}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <ItemCard key={it.id} item={it} onUpdate={onUpdate} onDelete={onDelete} />
       ))}
     </div>
   );
