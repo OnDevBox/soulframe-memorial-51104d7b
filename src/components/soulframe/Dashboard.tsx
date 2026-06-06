@@ -4,7 +4,6 @@ import {
   Swords,
   ScrollText,
   Gem,
-  Save,
   Upload,
   Download,
   Plus,
@@ -28,16 +27,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
+  APP_VERSION,
   type Item,
   type ItemKind,
   type SaveData,
   ITEM_CATEGORIES,
   defaultData,
   exportCSV,
+  exportJSON,
   getCategoryName,
   importCSV,
+  importJSON,
   loadFromStorage,
-  saveToStorage,
 } from "@/lib/soulframe-storage";
 
 const KIND_META: Record<
@@ -83,12 +84,6 @@ export function Dashboard() {
     setData(next);
   };
 
-  const handleSaveStick = () => {
-    saveToStorage(data);
-    setSavedData(data);
-    toast.success("Memória inscrita", { description: "Sua história foi gravada no memorystick." });
-  };
-
   const handleLoadStick = () => {
     const loaded = loadFromStorage();
     setData(loaded);
@@ -96,26 +91,32 @@ export function Dashboard() {
     toast.success("Memória restaurada", { description: "Ecos recuperados da pedra." });
   };
 
-  const handleExport = () => {
-    const csv = exportCSV(data);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const handleExport = (format: "csv" | "json") => {
+    const content = format === "json" ? exportJSON(data) : exportCSV(data);
+    const mimeType = format === "json" ? "application/json;charset=utf-8" : "text/csv;charset=utf-8";
+    const extension = format === "json" ? "json" : "csv";
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `soulframe-${data.profile.envoyName || "enviado"}.csv`;
+    a.download = `soulframe-${data.profile.envoyName || "enviado"}.${extension}`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Pergaminho exportado");
+    setSavedData(data);
+    toast.success(`Salvar (${format.toUpperCase()})`);
   };
 
-  const handleImportClick = () => fileRef.current?.click();
+  const handleImportClick = () => {
+    fileRef.current?.click();
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();
+    const isJson = file.name.toLowerCase().endsWith(".json") || text.trim().startsWith("{");
     try {
-      const parsed = importCSV(text);
+      const parsed = isJson ? importJSON(text) : importCSV(text);
       setData(parsed);
       toast.success("Pergaminho decifrado", { description: `${parsed.items.length} relíquia(s) carregada(s).` });
     } catch {
@@ -173,7 +174,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen w-full">
-      <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={handleFile} />
+<input ref={fileRef} type="file" accept=".csv,text/csv,.json,application/json" hidden onChange={handleFile} />
 
       {/* Header */}
       <header className="border-b border-border/60 backdrop-blur-sm bg-background/40 sticky top-0 z-20">
@@ -188,26 +189,24 @@ export function Dashboard() {
             <div>
               <h1 className="text-xl md:text-2xl text-gold font-display">Soulframe Memorial</h1>
               <p className="text-sm text-muted-foreground italic">Crônica do Enviado</p>
+              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Versão {APP_VERSION}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={handleLoadStick}>
-              <Upload className="h-4 w-4 mr-1" /> Carregar Memória
-            </Button>
             <Button
               variant={hasChanges ? "default" : "outline"}
               size="sm"
-              onClick={handleSaveStick}
+              onClick={() => handleExport("json")}
               className={hasChanges ? "border-amber-400 bg-amber-500/15 text-amber-100 shadow-[0_0_0_1px_rgba(251,191,36,0.25)] animate-pulse" : ""}
             >
-              <Save className="h-4 w-4 mr-1" />
-              {hasChanges ? "Salvar Memória • pendente" : "Salvar Memória"}
+              <Download className="h-4 w-4 mr-1" />
+              {hasChanges ? "Salvar JSON • pendente" : "Salvar JSON"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleExport("csv")}>
+              <Download className="h-4 w-4 mr-1" /> Salvar CSV
             </Button>
             <Button variant="outline" size="sm" onClick={handleImportClick}>
-              <Upload className="h-4 w-4 mr-1" /> Importar CSV
-            </Button>
-            <Button size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" /> Exportar CSV
+              <Upload className="h-4 w-4 mr-1" /> Importar
             </Button>
           </div>
         </div>

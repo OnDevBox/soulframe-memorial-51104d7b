@@ -1,5 +1,7 @@
 export type ItemKind = "rune" | "pact" | "weapon" | "totem";
 
+export const APP_VERSION = "0.0.8";
+
 export interface CategoryDefinition {
   id: number;
   name: string;
@@ -83,17 +85,20 @@ export const defaultData: SaveData = {
   items: [],
 };
 
+function normalizeSaveData(input: Partial<SaveData> = {}): SaveData {
+  return {
+    profile: { ...defaultData.profile, ...(input.profile ?? {}) },
+    items: (input.items ?? []).map((item) => normalizeItem(item as Partial<Item>)),
+  };
+}
+
 export function loadFromStorage(): SaveData {
   if (typeof window === "undefined") return defaultData;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaultData;
     const parsed = JSON.parse(raw) as Partial<SaveData>;
-    return {
-      ...defaultData,
-      ...parsed,
-      items: (parsed.items ?? []).map((item) => normalizeItem(item as Partial<Item>)),
-    };
+    return normalizeSaveData(parsed);
   } catch {
     return defaultData;
   }
@@ -111,6 +116,18 @@ function csvEscape(v: string | number): string {
   const s = String(v ?? "");
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
+}
+
+export function exportJSON(data: SaveData): string {
+  return JSON.stringify(
+    {
+      version: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      data: normalizeSaveData(data),
+    },
+    null,
+    2,
+  );
 }
 
 export function exportCSV(data: SaveData): string {
@@ -160,6 +177,12 @@ function parseCSVLine(line: string): string[] {
   }
   out.push(cur);
   return out;
+}
+
+export function importJSON(text: string): SaveData {
+  const parsed = JSON.parse(text) as { version?: string; data?: Partial<SaveData> } | Partial<SaveData>;
+  const payload = ("data" in parsed && parsed.data ? parsed.data : parsed) as Partial<SaveData>;
+  return normalizeSaveData(payload);
 }
 
 export function importCSV(text: string): SaveData {
