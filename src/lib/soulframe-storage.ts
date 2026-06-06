@@ -58,7 +58,7 @@ export interface Item {
   name: string;
   categoryId: ItemCategoryId;
   category: string;
-  rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
+  rarity: "Comum"| "Lendário";
   level: number;
   notes: string;
   acquiredAt: string;

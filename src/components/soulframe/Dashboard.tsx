@@ -52,13 +52,10 @@ const KIND_META: Record<
   totem: { label: "Totens", icon: Gem, color: "text-[color:var(--ember)]", accent: "var(--ember)" },
 };
 
-const RARITIES: Item["rarity"][] = ["Comum", "Incomum", "Raro", "Épico", "Lendário"];
+const RARITIES: Item["rarity"][] = ["Comum", "Lendário"];
 
 const rarityClass: Record<Item["rarity"], string> = {
   Comum: "bg-muted text-muted-foreground border-border",
-  Incomum: "bg-accent/30 text-accent-foreground border-accent/40",
-  Raro: "bg-[color:var(--rune)]/20 text-[color:var(--rune)] border-[color:var(--rune)]/40",
-  Épico: "bg-[color:var(--pact)]/20 text-[color:var(--pact)] border-[color:var(--pact)]/40",
   Lendário: "bg-[color:var(--ember)]/20 text-[color:var(--ember)] border-[color:var(--ember)]/40",
 };
 
