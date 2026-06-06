@@ -239,7 +239,7 @@ export function Dashboard() {
               >
                 <Icon className={`h-8 w-8 ${m.color}`} />
                 <div>
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  <p className="text-sm uppercase tracking-widest text-muted-foreground">
                     {m.label}
                   </p>
                   <p className="text-3xl font-display text-gold">{counts[k]}</p>
