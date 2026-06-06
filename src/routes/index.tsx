@@ -9,12 +9,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A fan-made companion for Soulframe. Track your runes, pacts and weapons, then save your chronicle to a portable CSV memorystick.",
+          "A fan-made companion for Soulframe. Track your runes, pacts, weapons and totems, then save your chronicle to a portable CSV memorystick.",
       },
       { property: "og:title", content: "Soulframe Memorial" },
       {
         property: "og:description",
-        content: "Track your runes, pacts and weapons. Save and load your tale as a CSV.",
+        content: "Track your runes, pacts, weapons and totems. Save and load your tale as a CSV.",
       },
     ],
     links: [

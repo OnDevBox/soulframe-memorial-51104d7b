@@ -1,9 +1,22 @@
-export type ItemKind = "rune" | "pact" | "weapon";
+export type ItemKind = "rune" | "pact" | "weapon" | "totem";
+
+export const ITEM_CATEGORIES = [
+  "Espadas Longas",
+  "Espadões",
+  "Floretes",
+  "Armas de Haste",
+  "Escudos",
+  "Arcos",
+  "Adagas",
+  "Lâminas Arremessáveis",
+  "Armas Mágicas",
+] as const;
 
 export interface Item {
   id: string;
   kind: ItemKind;
   name: string;
+  category: (typeof ITEM_CATEGORIES)[number];
   rarity: "Comum" | "Incomum" | "Raro" | "Épico" | "Lendário";
   level: number;
   notes: string;
@@ -39,7 +52,15 @@ export function loadFromStorage(): SaveData {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaultData;
-    return { ...defaultData, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw) as Partial<SaveData>;
+    return {
+      ...defaultData,
+      ...parsed,
+      items: (parsed.items ?? []).map((item) => ({
+        ...item,
+        category: item.category || ITEM_CATEGORIES[0],
+      })) as Item[],
+    };
   } catch {
     return defaultData;
   }
@@ -51,7 +72,7 @@ export function saveToStorage(data: SaveData) {
 }
 
 // --- CSV ---
-const HEADERS = ["section", "id", "kind", "name", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
+const HEADERS = ["section", "id", "kind", "name", "category", "rarity", "level", "notes", "acquiredAt", "envoyName", "motto", "realm"];
 
 function csvEscape(v: string | number): string {
   const s = String(v ?? "");
@@ -80,7 +101,7 @@ export function exportCSV(data: SaveData): string {
   );
   for (const it of data.items) {
     rows.push(
-      ["item", it.id, it.kind, it.name, it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
+      ["item", it.id, it.kind, it.name, it.category ?? ITEM_CATEGORIES[0], it.rarity, it.level, it.notes, it.acquiredAt, "", "", ""]
         .map(csvEscape)
         .join(","),
     );
@@ -129,6 +150,7 @@ export function importCSV(text: string): SaveData {
         id: row[idx("id")] || crypto.randomUUID(),
         kind: (row[idx("kind")] as ItemKind) || "rune",
         name: row[idx("name")] || "Desconhecido",
+        category: (row[idx("category")] as (typeof ITEM_CATEGORIES)[number]) || ITEM_CATEGORIES[0],
         rarity: (row[idx("rarity")] as Item["rarity"]) || "Comum",
         level: Number(row[idx("level")]) || 1,
         notes: row[idx("notes")] || "",

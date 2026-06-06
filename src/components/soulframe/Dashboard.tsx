@@ -3,6 +3,7 @@ import {
   Sparkles,
   Swords,
   ScrollText,
+  Gem,
   Save,
   Upload,
   Download,
@@ -30,6 +31,7 @@ import {
   type Item,
   type ItemKind,
   type SaveData,
+  ITEM_CATEGORIES,
   defaultData,
   exportCSV,
   importCSV,
@@ -44,6 +46,7 @@ const KIND_META: Record<
   rune: { label: "Runas", icon: Sparkles, color: "text-[color:var(--rune)]", accent: "var(--rune)" },
   pact: { label: "Pactos", icon: ScrollText, color: "text-[color:var(--pact)]", accent: "var(--pact)" },
   weapon: { label: "Armas", icon: Swords, color: "text-[color:var(--weapon)]", accent: "var(--weapon)" },
+  totem: { label: "Totens", icon: Gem, color: "text-[color:var(--ember)]", accent: "var(--ember)" },
 };
 
 const RARITIES: Item["rarity"][] = ["Comum", "Incomum", "Raro", "Épico", "Lendário"];
@@ -59,6 +62,7 @@ const rarityClass: Record<Item["rarity"], string> = {
 export function Dashboard() {
   const [data, setData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
+  const [activeCategory, setActiveCategory] = useState<string>("Todas");
   const [searchQuery, setSearchQuery] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -117,6 +121,7 @@ export function Dashboard() {
       id: crypto.randomUUID(),
       kind,
       name: "",
+      category: ITEM_CATEGORIES[0],
       rarity: "Comum",
       level: 1,
       notes: "",
@@ -137,7 +142,7 @@ export function Dashboard() {
   };
 
   const counts = useMemo(() => {
-    const c = { rune: 0, pact: 0, weapon: 0 } as Record<ItemKind, number>;
+    const c = { rune: 0, pact: 0, weapon: 0, totem: 0 } as Record<ItemKind, number>;
     data.items.forEach((i) => (c[i.kind] += 1));
     return c;
   }, [data.items]);
@@ -146,7 +151,7 @@ export function Dashboard() {
   const filteredItems = useMemo(() => {
     if (!searchLower) return null;
     return data.items.filter((it) => {
-      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind}`.toLowerCase();
+      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind} ${it.category ?? ""}`.toLowerCase();
       return hay.includes(searchLower);
     });
   }, [data.items, searchLower]);
@@ -265,7 +270,7 @@ export function Dashboard() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar runas, pactos, armas, notas, raridade…"
+              placeholder="Buscar runas, pactos, armas, totems, notas, raridade…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 py-5 text-base"
@@ -328,14 +333,34 @@ export function Dashboard() {
                   })}
                 </TabsList>
                 <Button onClick={() => addItem(activeKind)} variant="default">
-                  <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
+                  <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : activeKind === "totem" ? "Totem" : "Runa"}
                 </Button>
+              </div>
+
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory("Todas")}
+                  className={`rounded-full border px-3 py-1 text-sm ${activeCategory === "Todas" ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                >
+                  Todas
+                </button>
+                {ITEM_CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className={`rounded-full border px-3 py-1 text-sm ${activeCategory === category ? "border-primary bg-primary/15 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
 
               {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
                 <TabsContent key={k} value={k} className="mt-0">
                   <ItemList
-                    items={data.items.filter((i) => i.kind === k)}
+                    items={data.items.filter((i) => i.kind === k && (activeCategory === "Todas" || i.category === activeCategory))}
                     kind={k}
                     onUpdate={updateItem}
                     onDelete={deleteItem}
@@ -383,6 +408,7 @@ function ItemList({
       rune: "Nenhuma runa inscrita no seu códice ainda.",
       pact: "Nenhum pacto inscrito no seu códice ainda.",
       weapon: "Nenhuma arma inscrita no seu códice ainda.",
+      totem: "Nenhum totem inscrito no seu códice ainda.",
     };
     return (
       <Card className="rune-card border-dashed">
@@ -444,6 +470,21 @@ function ItemCard({
               onChange={(e) => onUpdate(item.id, { level: Number(e.target.value) || 1 })}
             />
           </Field>
+          <Field label="Categoria">
+            <Select
+              value={item.category ?? ITEM_CATEGORIES[0]}
+              onValueChange={(v) => onUpdate(item.id, { category: v as (typeof ITEM_CATEGORIES)[number] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ITEM_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Raridade">
             <Select
               value={item.rarity}
@@ -476,7 +517,10 @@ function ItemCard({
           />
         </Field>
         <div className="flex justify-between items-center pt-1">
-          <Badge variant="outline" className={rarityClass[item.rarity]}>{item.rarity}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className={rarityClass[item.rarity]}>{item.rarity}</Badge>
+            <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">{item.category ?? ITEM_CATEGORIES[0]}</Badge>
+          </div>
           <span className="text-sm text-muted-foreground">Nv. {item.level}</span>
         </div>
       </CardContent>
