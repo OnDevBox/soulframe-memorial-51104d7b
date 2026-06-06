@@ -9,6 +9,7 @@ import {
   Plus,
   Trash2,
   Feather,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ const rarityClass: Record<Item["rarity"], string> = {
 export function Dashboard() {
   const [data, setData] = useState<SaveData>(defaultData);
   const [activeKind, setActiveKind] = useState<ItemKind>("rune");
+  const [searchQuery, setSearchQuery] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -139,6 +141,15 @@ export function Dashboard() {
     data.items.forEach((i) => (c[i.kind] += 1));
     return c;
   }, [data.items]);
+
+  const searchLower = searchQuery.trim().toLowerCase();
+  const filteredItems = useMemo(() => {
+    if (!searchLower) return null;
+    return data.items.filter((it) => {
+      const hay = `${it.name} ${it.notes} ${it.rarity} ${it.kind}`.toLowerCase();
+      return hay.includes(searchLower);
+    });
+  }, [data.items, searchLower]);
 
   return (
     <div className="min-h-screen w-full">
@@ -249,37 +260,90 @@ export function Dashboard() {
           })}
         </section>
 
+        {/* Search */}
+        <section className="max-w-xl mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar runas, pactos, armas, notas, raridade…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 py-5 text-base"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </section>
+
         {/* Items */}
         <section>
-          <Tabs value={activeKind} onValueChange={(v) => setActiveKind(v as ItemKind)}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <TabsList className="bg-card border border-border">
-                {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
-                  const Icon = KIND_META[k].icon;
-                  return (
-                    <TabsTrigger key={k} value={k} className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-                      <Icon className="h-4 w-4 mr-2" />
-                      {KIND_META[k].label}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-              <Button onClick={() => addItem(activeKind)} variant="default">
-                <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
-              </Button>
-            </div>
+          {filteredItems ? (
+            <>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <h3 className="text-lg font-display text-gold">
+                  Resultados da Busca
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {filteredItems.length} relíquia{filteredItems.length !== 1 ? "s" : ""} encontrada{filteredItems.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              {filteredItems.length === 0 ? (
+                <Card className="rune-card border-dashed">
+                  <CardContent className="py-16 text-center">
+                    <Search className="h-10 w-10 mx-auto mb-3 opacity-60 text-muted-foreground" />
+                    <p className="text-muted-foreground italic text-base">Nenhuma relíquia corresponde à sua busca.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {filteredItems.map((it) => (
+                    <ItemCard
+                      key={it.id}
+                      item={it}
+                      onUpdate={updateItem}
+                      onDelete={deleteItem}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <Tabs value={activeKind} onValueChange={(v) => setActiveKind(v as ItemKind)}>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <TabsList className="bg-card border border-border">
+                  {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
+                    const Icon = KIND_META[k].icon;
+                    return (
+                      <TabsTrigger key={k} value={k} className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+                        <Icon className="h-4 w-4 mr-2" />
+                        {KIND_META[k].label}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+                <Button onClick={() => addItem(activeKind)} variant="default">
+                  <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
+                </Button>
+              </div>
 
-            {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
-              <TabsContent key={k} value={k} className="mt-0">
-                <ItemList
-                  items={data.items.filter((i) => i.kind === k)}
-                  kind={k}
-                  onUpdate={updateItem}
-                  onDelete={deleteItem}
-                />
-              </TabsContent>
-            ))}
-          </Tabs>
+              {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
+                <TabsContent key={k} value={k} className="mt-0">
+                  <ItemList
+                    items={data.items.filter((i) => i.kind === k)}
+                    kind={k}
+                    onUpdate={updateItem}
+                    onDelete={deleteItem}
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
         </section>
 
         <footer className="text-center text-sm text-muted-foreground py-8">
@@ -333,72 +397,89 @@ function ItemList({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {items.map((it) => (
-        <Card key={it.id} className="rune-card overflow-hidden">
-          <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="flex items-center gap-2 text-lg font-display">
-              <Icon className={`h-5 w-5 ${meta.color}`} />
-              <span className="truncate">{it.name || <em className="text-muted-foreground">Sem Nome</em>}</span>
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(it.id)}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Nome">
-                <Input value={it.name} onChange={(e) => onUpdate(it.id, { name: e.target.value })} />
-              </Field>
-              <Field label="Nível">
-                <Input
-                  type="number"
-                  min={1}
-                  value={it.level}
-                  onChange={(e) => onUpdate(it.id, { level: Number(e.target.value) || 1 })}
-                />
-              </Field>
-              <Field label="Raridade">
-                <Select
-                  value={it.rarity}
-                  onValueChange={(v) => onUpdate(it.id, { rarity: v as Item["rarity"] })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RARITIES.map((r) => (
-                      <SelectItem key={r} value={r}>{r}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Adquirido">
-                <Input
-                  type="date"
-                  value={it.acquiredAt}
-                  onChange={(e) => onUpdate(it.id, { acquiredAt: e.target.value })}
-                />
-              </Field>
-            </div>
-            <Field label="Notas">
-              <Textarea
-                rows={2}
-                value={it.notes}
-                onChange={(e) => onUpdate(it.id, { notes: e.target.value })}
-                placeholder="Lore sussurrada, efeitos, origens…"
-              />
-            </Field>
-            <div className="flex justify-between items-center pt-1">
-              <Badge variant="outline" className={rarityClass[it.rarity]}>{it.rarity}</Badge>
-              <span className="text-sm text-muted-foreground">Nv. {it.level}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <ItemCard key={it.id} item={it} onUpdate={onUpdate} onDelete={onDelete} />
       ))}
     </div>
+  );
+}
+
+function ItemCard({
+  item,
+  onUpdate,
+  onDelete,
+}: {
+  item: Item;
+  onUpdate: (id: string, patch: Partial<Item>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const meta = KIND_META[item.kind];
+  const Icon = meta.icon;
+
+  return (
+    <Card className="rune-card overflow-hidden">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="flex items-center gap-2 text-lg font-display">
+          <Icon className={`h-5 w-5 ${meta.color}`} />
+          <span className="truncate">{item.name || <em className="text-muted-foreground">Sem Nome</em>}</span>
+        </CardTitle>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(item.id)}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Nome">
+            <Input value={item.name} onChange={(e) => onUpdate(item.id, { name: e.target.value })} />
+          </Field>
+          <Field label="Nível">
+            <Input
+              type="number"
+              min={1}
+              value={item.level}
+              onChange={(e) => onUpdate(item.id, { level: Number(e.target.value) || 1 })}
+            />
+          </Field>
+          <Field label="Raridade">
+            <Select
+              value={item.rarity}
+              onValueChange={(v) => onUpdate(item.id, { rarity: v as Item["rarity"] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RARITIES.map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Adquirido">
+            <Input
+              type="date"
+              value={item.acquiredAt}
+              onChange={(e) => onUpdate(item.id, { acquiredAt: e.target.value })}
+            />
+          </Field>
+        </div>
+        <Field label="Notas">
+          <Textarea
+            rows={2}
+            value={item.notes}
+            onChange={(e) => onUpdate(item.id, { notes: e.target.value })}
+            placeholder="Lore sussurrada, efeitos, origens…"
+          />
+        </Field>
+        <div className="flex justify-between items-center pt-1">
+          <Badge variant="outline" className={rarityClass[item.rarity]}>{item.rarity}</Badge>
+          <span className="text-sm text-muted-foreground">Nv. {item.level}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
