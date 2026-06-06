@@ -265,7 +265,7 @@ export function Dashboard() {
   const searchLower = searchQuery.trim().toLowerCase();
   const itemCompletionCounts = useMemo(() => {
     const all = data.items.length;
-    const complete = data.items.filter((item) => item.completed || item.partsCount >= item.partsTotal).length;
+    const complete = data.items.filter((item) => item.completed).length;
     const incomplete = all - complete;
     return { all, complete, incomplete };
   }, [data.items]);
@@ -279,7 +279,7 @@ export function Dashboard() {
       : data.items;
 
     return baseItems.filter((it) => {
-      const complete = it.completed || it.partsCount >= it.partsTotal;
+      const complete = it.completed;
       if (itemFilter === "complete" && !complete) return false;
       if (itemFilter === "incomplete" && complete) return false;
       return true;
@@ -816,7 +816,7 @@ function ItemCard({
 }) {
   const meta = KIND_META[item.kind];
   const Icon = meta.icon;
-  const complete = item.completed || item.partsCount >= item.partsTotal;
+  const complete = item.completed;
 
   return (
     <Card className="rune-card overflow-hidden">
@@ -938,12 +938,7 @@ function ItemCard({
             <input
               type="checkbox"
               checked={complete}
-              onChange={(e) =>
-                onUpdate(item.id, {
-                  completed: e.target.checked,
-                  partsCount: e.target.checked ? item.partsTotal : item.partsCount,
-                })
-              }
+              onChange={(e) => onUpdate(item.id, { completed: e.target.checked })}
             />
             <span>{complete ? "Completo" : `Em progresso (${item.partsCount}/${item.partsTotal})`}</span>
           </label>
