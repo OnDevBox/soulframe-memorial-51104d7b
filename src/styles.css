@@ -82,6 +82,7 @@
     color: var(--foreground);
     font-family: var(--font-body);
     min-height: 100vh;
+    font-size: 1.0625rem;
   }
 
   body {
