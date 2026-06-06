@@ -48,6 +48,7 @@ function normalizeItem(item: Partial<Item> & { category?: string; categoryId?: n
     acquiredAt: item.acquiredAt ?? new Date().toISOString().slice(0, 10),
     partsCount: typeof item.partsCount === "number" ? item.partsCount : 0,
     partsTotal: typeof item.partsTotal === "number" ? Math.max(1, item.partsTotal) : 5,
+    completed: Boolean(item.completed ?? false),
   } as Item;
 }
 
@@ -63,6 +64,7 @@ export interface Item {
   acquiredAt: string;
   partsCount: number;
   partsTotal: number;
+  completed: boolean;
 }
 
 export interface Profile {
@@ -156,7 +158,7 @@ export function saveToStorage(data: SaveData) {
 }
 
 // --- CSV ---
-const HEADERS = ["section", "id", "kind", "name", "categoryId", "category", "rarity", "level", "notes", "acquiredAt", "partsCount", "partsTotal", "envoyName", "motto", "realm"];
+const HEADERS = ["section", "id", "kind", "name", "categoryId", "category", "rarity", "level", "notes", "acquiredAt", "partsCount", "partsTotal", "completed", "envoyName", "motto", "realm"];
 
 function csvEscape(v: string | number): string {
   const s = String(v ?? "");
@@ -197,7 +199,7 @@ export function exportCSV(data: SaveData): string {
   );
   for (const it of data.items) {
     rows.push(
-      ["item", it.id, it.kind, it.name, it.categoryId, it.category ?? getCategoryName(it.categoryId), it.rarity, it.level, it.notes, it.acquiredAt, it.partsCount, it.partsTotal, "", "", ""]
+      ["item", it.id, it.kind, it.name, it.categoryId, it.category ?? getCategoryName(it.categoryId), it.rarity, it.level, it.notes, it.acquiredAt, it.partsCount, it.partsTotal, Number(it.completed), "", "", ""]
         .map(csvEscape)
         .join(","),
     );
@@ -262,6 +264,7 @@ export function importCSV(text: string): SaveData {
           acquiredAt: row[idx("acquiredAt")] || new Date().toISOString().slice(0, 10),
           partsCount: Number(row[idx("partsCount")]) || 0,
           partsTotal: Number(row[idx("partsTotal")]) || 5,
+          completed: Boolean(row[idx("completed")]) || false,
         }),
       );
     }

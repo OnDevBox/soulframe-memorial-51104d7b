@@ -146,7 +146,8 @@ export function Dashboard() {
       notes: "",
       acquiredAt: new Date().toISOString().slice(0, 10),
       partsCount: 0,
-      partsTotal: 5,
+      partsTotal: 0,
+      completed: false,
     };
     persistMemory({ ...data, items: [newItem, ...data.items] });
   };
@@ -172,13 +173,13 @@ export function Dashboard() {
           id: crypto.randomUUID(),
           name,
           helmetCount: 0,
-          helmetTotal: 5,
+          helmetTotal: 0,
           helmetOwned: false,
           chestCount: 0,
-          chestTotal: 5,
+          chestTotal: 0,
           chestOwned: false,
           legsCount: 0,
-          legsTotal: 5,
+          legsTotal: 0,
           legsOwned: false,
         },
         ...data.armorSets,
@@ -263,7 +264,7 @@ export function Dashboard() {
   const searchLower = searchQuery.trim().toLowerCase();
   const itemCompletionCounts = useMemo(() => {
     const all = data.items.length;
-    const complete = data.items.filter((item) => item.partsCount >= item.partsTotal).length;
+    const complete = data.items.filter((item) => item.completed || item.partsCount >= item.partsTotal).length;
     const incomplete = all - complete;
     return { all, complete, incomplete };
   }, [data.items]);
@@ -277,7 +278,7 @@ export function Dashboard() {
       : data.items;
 
     return baseItems.filter((it) => {
-      const complete = it.partsCount >= it.partsTotal;
+      const complete = it.completed || it.partsCount >= it.partsTotal;
       if (itemFilter === "complete" && !complete) return false;
       if (itemFilter === "incomplete" && complete) return false;
       return true;
@@ -572,9 +573,7 @@ export function Dashboard() {
                 <div className="space-y-1">
                   <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Sets de Armadura</p>
                   <h3 className="text-2xl font-display text-gold">Cadastre seus conjuntos e acompanhe quantas partes você já possui</h3>
-                </div>
-                <div className="flex flex-col gap-2 md:w-[420px]">
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     {[
                       { key: "all", label: "Todos", count: setCompletionCounts.all },
                       { key: "complete", label: "Completos", count: setCompletionCounts.complete },
@@ -590,6 +589,8 @@ export function Dashboard() {
                       </button>
                     ))}
                   </div>
+                </div>
+                <div className="flex flex-col gap-2 md:w-[420px]">
                   <div className="flex gap-2">
                     <Input
                       value={newSetName}
@@ -807,7 +808,7 @@ function ItemCard({
 }) {
   const meta = KIND_META[item.kind];
   const Icon = meta.icon;
-  const complete = item.partsCount >= item.partsTotal;
+  const complete = item.completed || item.partsCount >= item.partsTotal;
 
   return (
     <Card className="rune-card overflow-hidden">
@@ -926,7 +927,16 @@ function ItemCard({
         <div className="flex items-center justify-between rounded-lg border border-border bg-card/70 px-3 py-2 text-sm">
           <span>Tenho o item completo</span>
           <label className="flex items-center gap-2 text-primary">
-            <input type="checkbox" checked={complete} disabled />
+            <input
+              type="checkbox"
+              checked={complete}
+              onChange={(e) =>
+                onUpdate(item.id, {
+                  completed: e.target.checked,
+                  partsCount: e.target.checked ? item.partsTotal : item.partsCount,
+                })
+              }
+            />
             <span>{complete ? "Completo" : `Em progresso (${item.partsCount}/${item.partsTotal})`}</span>
           </label>
         </div>
