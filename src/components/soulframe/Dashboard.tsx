@@ -260,37 +260,90 @@ export function Dashboard() {
           })}
         </section>
 
+        {/* Search */}
+        <section className="max-w-xl mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar runas, pactos, armas, notas, raridade…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 py-5 text-base"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </section>
+
         {/* Items */}
         <section>
-          <Tabs value={activeKind} onValueChange={(v) => setActiveKind(v as ItemKind)}>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <TabsList className="bg-card border border-border">
-                {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
-                  const Icon = KIND_META[k].icon;
-                  return (
-                    <TabsTrigger key={k} value={k} className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
-                      <Icon className="h-4 w-4 mr-2" />
-                      {KIND_META[k].label}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-              <Button onClick={() => addItem(activeKind)} variant="default">
-                <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
-              </Button>
-            </div>
+          {filteredItems ? (
+            <>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <h3 className="text-lg font-display text-gold">
+                  Resultados da Busca
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {filteredItems.length} relíquia{filteredItems.length !== 1 ? "s" : ""} encontrada{filteredItems.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              {filteredItems.length === 0 ? (
+                <Card className="rune-card border-dashed">
+                  <CardContent className="py-16 text-center">
+                    <Search className="h-10 w-10 mx-auto mb-3 opacity-60 text-muted-foreground" />
+                    <p className="text-muted-foreground italic text-base">Nenhuma relíquia corresponde à sua busca.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {filteredItems.map((it) => (
+                    <ItemCard
+                      key={it.id}
+                      item={it}
+                      onUpdate={updateItem}
+                      onDelete={deleteItem}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <Tabs value={activeKind} onValueChange={(v) => setActiveKind(v as ItemKind)}>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <TabsList className="bg-card border border-border">
+                  {(Object.keys(KIND_META) as ItemKind[]).map((k) => {
+                    const Icon = KIND_META[k].icon;
+                    return (
+                      <TabsTrigger key={k} value={k} className="data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+                        <Icon className="h-4 w-4 mr-2" />
+                        {KIND_META[k].label}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+                <Button onClick={() => addItem(activeKind)} variant="default">
+                  <Plus className="h-4 w-4 mr-1" /> Inscrever {activeKind === "weapon" ? "Arma" : activeKind === "pact" ? "Pacto" : "Runa"}
+                </Button>
+              </div>
 
-            {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
-              <TabsContent key={k} value={k} className="mt-0">
-                <ItemList
-                  items={data.items.filter((i) => i.kind === k)}
-                  kind={k}
-                  onUpdate={updateItem}
-                  onDelete={deleteItem}
-                />
-              </TabsContent>
-            ))}
-          </Tabs>
+              {(Object.keys(KIND_META) as ItemKind[]).map((k) => (
+                <TabsContent key={k} value={k} className="mt-0">
+                  <ItemList
+                    items={data.items.filter((i) => i.kind === k)}
+                    kind={k}
+                    onUpdate={updateItem}
+                    onDelete={deleteItem}
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
+          )}
         </section>
 
         <footer className="text-center text-sm text-muted-foreground py-8">
