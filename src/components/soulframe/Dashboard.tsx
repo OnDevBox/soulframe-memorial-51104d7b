@@ -168,25 +168,25 @@ export function Dashboard() {
   const addArmorSet = () => {
     const name = newSetName.trim();
     if (!name) return;
-    persistMemory({
-      ...data,
+    persistMemory((prev) => ({
+      ...prev,
       armorSets: [
         {
           id: crypto.randomUUID(),
           name,
           helmetCount: 0,
-          helmetTotal: 0,
+          helmetTotal: 5,
           helmetOwned: false,
           chestCount: 0,
-          chestTotal: 0,
+          chestTotal: 5,
           chestOwned: false,
           legsCount: 0,
-          legsTotal: 0,
+          legsTotal: 5,
           legsOwned: false,
         },
-        ...data.armorSets,
+        ...prev.armorSets,
       ],
-    });
+    }));
     setNewSetName("");
   };
 
@@ -195,18 +195,24 @@ export function Dashboard() {
     part: "helmet" | "chest" | "legs",
     nextCount: number,
   ) => {
-    persistMemory({
-      ...data,
-      armorSets: data.armorSets.map((set) => {
+    persistMemory((prev) => ({
+      ...prev,
+      armorSets: prev.armorSets.map((set) => {
         if (set.id !== setId) return set;
         const max = part === "helmet" ? set.helmetTotal : part === "chest" ? set.chestTotal : set.legsTotal;
-        const safeCount = Math.max(0, Math.min(nextCount, max));
+        const safeCount = Math.max(0, Math.min(nextCount, Math.max(1, max)));
+        const countKey = part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount";
+        const totalKey = part === "helmet" ? "helmetTotal" : part === "chest" ? "chestTotal" : "legsTotal";
+        const ownedKey = part === "helmet" ? "helmetOwned" : part === "chest" ? "chestOwned" : "legsOwned";
+        const totalVal = Math.max(1, max);
         return {
           ...set,
-          [part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount"]: safeCount,
+          [totalKey]: totalVal,
+          [countKey]: safeCount,
+          [ownedKey]: safeCount >= totalVal ? true : set[ownedKey],
         };
       }),
-    });
+    }));
   };
 
   const updateArmorPartOwned = (
@@ -214,17 +220,21 @@ export function Dashboard() {
     part: "helmet" | "chest" | "legs",
     nextOwned: boolean,
   ) => {
-    persistMemory({
-      ...data,
-      armorSets: data.armorSets.map((set) =>
-        set.id === setId
-          ? {
-              ...set,
-              [part === "helmet" ? "helmetOwned" : part === "chest" ? "chestOwned" : "legsOwned"]: nextOwned,
-            }
-          : set,
-      ),
-    });
+    persistMemory((prev) => ({
+      ...prev,
+      armorSets: prev.armorSets.map((set) => {
+        if (set.id !== setId) return set;
+        const countKey = part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount";
+        const totalKey = part === "helmet" ? "helmetTotal" : part === "chest" ? "chestTotal" : "legsTotal";
+        const ownedKey = part === "helmet" ? "helmetOwned" : part === "chest" ? "chestOwned" : "legsOwned";
+        const total = Math.max(1, set[totalKey] as number);
+        return {
+          ...set,
+          [ownedKey]: nextOwned,
+          [countKey]: nextOwned ? total : set[countKey],
+        };
+      }),
+    }));
   };
 
   const updateArmorPartTotal = (
@@ -232,27 +242,28 @@ export function Dashboard() {
     part: "helmet" | "chest" | "legs",
     nextTotal: number,
   ) => {
-    persistMemory({
-      ...data,
-      armorSets: data.armorSets.map((set) => {
+    persistMemory((prev) => ({
+      ...prev,
+      armorSets: prev.armorSets.map((set) => {
         if (set.id !== setId) return set;
         const safeTotal = Math.max(1, nextTotal);
         const countKey = part === "helmet" ? "helmetCount" : part === "chest" ? "chestCount" : "legsCount";
         const totalKey = part === "helmet" ? "helmetTotal" : part === "chest" ? "chestTotal" : "legsTotal";
+        const currentCount = set[countKey] as number;
         return {
           ...set,
           [totalKey]: safeTotal,
-          [countKey]: Math.min(set[countKey as keyof typeof set] as number, safeTotal),
+          [countKey]: Math.min(currentCount, safeTotal),
         };
       }),
-    });
+    }));
   };
 
   const deleteArmorSet = (setId: string) => {
-    persistMemory({
-      ...data,
-      armorSets: data.armorSets.filter((set) => set.id !== setId),
-    });
+    persistMemory((prev) => ({
+      ...prev,
+      armorSets: prev.armorSets.filter((set) => set.id !== setId),
+    }));
   };
 
   const counts = useMemo(() => {
