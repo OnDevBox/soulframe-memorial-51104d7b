@@ -1,0 +1,6 @@
+{
+  "buildCommand": "bun run build:spa",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
