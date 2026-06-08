@@ -865,7 +865,7 @@ function ItemCard({
               onValueChange={(v) => {
                 const nextCategoryId = Number(v);
                 onUpdate(item.id, {
-                  categoryId: nextCategoryId,
+                  categoryId: nextCategoryId as Item["categoryId"],
                   category: ITEM_CATEGORIES.find((category) => category.id === nextCategoryId)?.name ?? getCategoryName(nextCategoryId),
                 });
               }}
