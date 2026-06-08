@@ -83,8 +83,12 @@ export function Dashboard() {
     [data, savedData],
   );
 
-  const persistMemory = (next: SaveData) => {
-    setData(next); saveToStorage(next);
+  const persistMemory = (updater: SaveData | ((prev: SaveData) => SaveData)) => {
+    setData((prev) => {
+      const next = typeof updater === "function" ? (updater as (p: SaveData) => SaveData)(prev) : updater;
+      saveToStorage(next);
+      return next;
+    });
   };
 
   const handleLoadStick = () => {
